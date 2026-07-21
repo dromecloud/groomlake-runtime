@@ -12,27 +12,21 @@ groomlake-runtime/
 ├── bin/                         ausführbare Runtime-Einstiegspunkte
 ├── lib/                         gemeinsame Funktionen des Autoloaders
 ├── components/                  profilübergreifend installierbare Bausteine
-│   ├── blackbox-agent/
-│   ├── health/
-│   ├── motd/
-│   ├── git/
-│   ├── dns/
-│   ├── docker/
-│   ├── tailscale/
-│   └── hermes/
 ├── profiles/                    Zusammensetzung und Konfiguration pro Zone
 │   ├── ironbird/
 │   │   ├── config/
 │   │   └── sequences/
-│   └── recon/
+│   ├── recon/
+│   │   ├── config/
+│   │   └── sequences/
+│   ├── intelligence/
+│   │   ├── config/
+│   │   └── sequences/
+│   └── blackops/
 │       ├── config/
 │       └── sequences/
 ├── schemas/                     maschinenlesbare Vertrags-Schemas
-├── tests/
-│   ├── contracts/
-│   ├── components/
-│   ├── profiles/
-│   └── smoke/
+├── tests/                       entsteht zusammen mit realen Verbrauchern
 └── scripts/                     Entwicklungs- und Repository-Prüfungen
 ```
 
@@ -52,11 +46,11 @@ groomlake-runtime/
 
 ## Aufbaufolge
 
-Die Verzeichnisse sind zunächst bewusst leer. Verträge und ausführbare Dateien werden erst mit einem
-funktionalen Verbraucher ergänzt:
+`components/` und `tests/` sind zunächst bewusst leer. Unterordner, Verträge und ausführbare Dateien
+werden erst mit einem funktionalen Verbraucher ergänzt:
 
 1. Schema für Installationsplan, Profil und Komponente festlegen.
 2. Minimalen Autoloader bauen.
 3. `health`, `motd` und `blackbox-agent` als erste gemeinsame Komponenten umsetzen.
 4. Iron-Bird-Profil vollständig durchlaufen lassen.
-5. Erst danach weitere Komponenten und das Recon-Profil aktivieren.
+5. Erst danach weitere Komponenten und Profile aktivieren.
