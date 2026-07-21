@@ -11,7 +11,7 @@ fest, warum der Code so aufgebaut ist und welche Punkte noch offen sind.
 - `groomlake-runtime` bleibt ein eigenständiges Git-Repository.
 - `manifest.json` ist die gemeinsame Registry für MSO und MSR; sie bleibt die Root-Quelle.
 - `schema_version` beschreibt das JSON-Format.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.21.3`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.22.1`.
 - `provisioning.profiles` ist jetzt die verbindliche MSO-Quelle für Images, Architekturen, Release-Kanäle
   und fest versionierte Bootstrap-Dateien samt SHA-256. Tailscale, Docker und eine Profil-Bootstrap-
   Kopplung sind daraus entfernt.

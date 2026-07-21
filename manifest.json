@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.21.3",
+  "manifest_version": "2026.07.22.1",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -34,10 +34,10 @@
             "available": false,
             "note": "Noch nicht funktional freigegeben.",
             "bootstrap": {
-              "version": "v1.0.0",
-              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.0.sh",
-              "sha256": "6eeeb9e85f12f63496837d3e2dbd1203856da665671fb4b4f5426ea271992c25",
-              "filename": "mso-bootstrap-v1.0.0.sh"
+              "version": "v1.0.1",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.1.sh",
+              "sha256": "1adae0b5653c4df219cc6e8563fa82e9bb4d235de6d5bb4e0894968fd43bd798",
+              "filename": "mso-bootstrap-v1.0.1.sh"
             }
           },
           "dev": {
@@ -45,10 +45,10 @@
             "available": true,
             "note": "Nur fuer den kontrollierten Frischserver-Test.",
             "bootstrap": {
-              "version": "v1.0.0",
-              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.0.sh",
-              "sha256": "6eeeb9e85f12f63496837d3e2dbd1203856da665671fb4b4f5426ea271992c25",
-              "filename": "mso-bootstrap-v1.0.0.sh"
+              "version": "v1.0.1",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.1.sh",
+              "sha256": "1adae0b5653c4df219cc6e8563fa82e9bb4d235de6d5bb4e0894968fd43bd798",
+              "filename": "mso-bootstrap-v1.0.1.sh"
             }
           }
         }
