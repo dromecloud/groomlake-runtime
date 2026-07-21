@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "name": "Mission Systems Runtime",
+    "entrypoint": "bin/msr"
+  },
+  "profiles": {
+    "ironbird": "profiles/ironbird/profile.json"
+  },
+  "components": {
+    "motd": "components/motd/component.json"
+  }
+}

@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly MSR_VERSION='0.1.0'
+
+log() {
+  printf '[MSR] %s\n' "$*"
+}
+
+die() {
+  printf '[MSR] ERROR: %s\n' "$*" >&2
+  exit 1
+}
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  msr apply --plan <file> [--root <absolute-path>]
+  msr version
+EOF
+}
+
+validate_relative_path() {
+  local path=$1
+  [[ -n "$path" ]] || die 'Manifest path must not be empty.'
+  [[ "$path" != /* ]] || die "Absolute manifest path is forbidden: $path"
+  [[ ! "$path" =~ (^|/)\.\.(/|$) ]] || die "Parent traversal is forbidden: $path"
+}
+
+resolve_file() {
+  local base=$1
+  local relative=$2
+  local candidate base_real candidate_dir_real
+
+  validate_relative_path "$relative"
+  candidate="$base/$relative"
+  [[ -f "$candidate" ]] || die "Declared file does not exist: $relative"
+
+  base_real=$(cd "$base" && pwd -P)
+  candidate_dir_real=$(cd "$(dirname "$candidate")" && pwd -P)
+  case "$candidate_dir_real/" in
+    "$base_real/"*) ;;
+    *) die "Declared file leaves its allowed directory: $relative" ;;
+  esac
+
+  printf '%s/%s\n' "$candidate_dir_real" "$(basename "$candidate")"
+}
+
+require_jq() {
+  command -v jq >/dev/null 2>&1 || die 'jq is required but is not installed.'
+}
+
+validate_plan() {
+  local plan=$1
+  jq -e '
+    type == "object" and
+    (.schema_version == 1) and
+    (.run_id | type == "string" and test("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")) and
+    (.profile | type == "string" and test("^[a-z0-9][a-z0-9-]{0,63}$")) and
+    ((keys - ["profile", "run_id", "schema_version"]) | length == 0)
+  ' "$plan" >/dev/null || die 'Installation plan does not match schema version 1.'
+}
+
+validate_registry() {
+  local registry=$1
+  jq -e '
+    type == "object" and
+    (.schema_version == 1) and
+    (.runtime.name == "Mission Systems Runtime") and
+    (.runtime.entrypoint == "bin/msr") and
+    (.profiles | type == "object") and
+    (.components | type == "object")
+  ' "$registry" >/dev/null || die 'Runtime manifest is invalid.'
+}
+
+validate_profile() {
+  local profile_file=$1
+  local expected_id=$2
+  jq -e --arg id "$expected_id" '
+    type == "object" and
+    (.schema_version == 1) and
+    (.id == $id) and
+    (.label | type == "string" and length > 0) and
+    (.components | type == "array") and
+    (all(.components[];
+      type == "object" and
+      (.id | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
+      (.config | type == "string" and length > 0) and
+      ((keys - ["config", "id"]) | length == 0)
+    )) and
+    (.sequences | type == "array") and
+    ((keys - ["components", "id", "label", "schema_version", "sequences"]) | length == 0)
+  ' "$profile_file" >/dev/null || die "Profile manifest is invalid: $expected_id"
+}
+
+validate_component() {
+  local component_file=$1
+  local expected_id=$2
+  jq -e --arg id "$expected_id" '
+    type == "object" and
+    (.schema_version == 1) and
+    (.id == $id) and
+    (.install | type == "string" and length > 0) and
+    (.verify | type == "string" and length > 0) and
+    ((keys - ["id", "install", "schema_version", "verify"]) | length == 0)
+  ' "$component_file" >/dev/null || die "Component manifest is invalid: $expected_id"
+}
+
+apply_plan() {
+  local plan=''
+  local target_root='/'
+  local repo_root registry profile_id run_id profile_relative profile_file profile_dir
+
+  while (( $# > 0 )); do
+    case "$1" in
+      --plan)
+        (( $# >= 2 )) || { usage; exit 64; }
+        plan=$2
+        shift 2
+        ;;
+      --root)
+        (( $# >= 2 )) || { usage; exit 64; }
+        target_root=$2
+        shift 2
+        ;;
+      *)
+        usage
+        exit 64
+        ;;
+    esac
+  done
+
+  [[ -n "$plan" && -r "$plan" ]] || die 'A readable --plan file is required.'
+  [[ "$target_root" == /* ]] || die 'Target root must be an absolute path.'
+  [[ -d "$target_root" ]] || die "Target root does not exist: $target_root"
+
+  require_jq
+  repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+  registry="$repo_root/manifest.json"
+  [[ -r "$registry" ]] || die 'Runtime manifest is missing.'
+
+  validate_plan "$plan"
+  validate_registry "$registry"
+
+  profile_id=$(jq -r '.profile' "$plan")
+  run_id=$(jq -r '.run_id' "$plan")
+  profile_relative=$(jq -er --arg id "$profile_id" '.profiles[$id] // empty' "$registry") || die "Profile is not registered: $profile_id"
+  profile_file=$(resolve_file "$repo_root" "$profile_relative")
+  profile_dir=$(dirname "$profile_file")
+  validate_profile "$profile_file" "$profile_id"
+
+  log "run=$run_id profile=$profile_id version=$MSR_VERSION"
+
+  local component_count component_index component_id config_relative config_file
+  local component_relative component_file component_dir install_relative verify_relative install_file verify_file
+  component_count=$(jq '.components | length' "$profile_file")
+
+  for (( component_index=0; component_index<component_count; component_index++ )); do
+    component_id=$(jq -r ".components[$component_index].id" "$profile_file")
+    config_relative=$(jq -r ".components[$component_index].config" "$profile_file")
+    config_file=$(resolve_file "$profile_dir" "$config_relative")
+
+    component_relative=$(jq -er --arg id "$component_id" '.components[$id] // empty' "$registry") || die "Component is not registered: $component_id"
+    component_file=$(resolve_file "$repo_root" "$component_relative")
+    component_dir=$(dirname "$component_file")
+    validate_component "$component_file" "$component_id"
+
+    install_relative=$(jq -r '.install' "$component_file")
+    verify_relative=$(jq -r '.verify' "$component_file")
+    install_file=$(resolve_file "$component_dir" "$install_relative")
+    verify_file=$(resolve_file "$component_dir" "$verify_relative")
+    [[ -x "$install_file" ]] || die "Installer is not executable: $install_relative"
+    [[ -x "$verify_file" ]] || die "Verifier is not executable: $verify_relative"
+
+    log "component=$component_id action=install"
+    "$install_file" --config "$config_file" --root "$target_root"
+    log "component=$component_id action=verify"
+    "$verify_file" --config "$config_file" --root "$target_root"
+  done
+
+  log "run=$run_id status=complete components=$component_count"
+}
+
+case "${1:-}" in
+  apply)
+    shift
+    apply_plan "$@"
+    ;;
+  version)
+    printf '%s\n' "$MSR_VERSION"
+    ;;
+  *)
+    usage
+    exit 64
+    ;;
+esac

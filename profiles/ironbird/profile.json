@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "ironbird",
+  "label": "Iron Bird",
+  "components": [
+    {
+      "id": "motd",
+      "config": "config/motd.txt"
+    }
+  ],
+  "sequences": []
+}

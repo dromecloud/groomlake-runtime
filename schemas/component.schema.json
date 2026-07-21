@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://groomlake.drome.cloud/schemas/component.schema.json",
+  "title": "Groomlake component",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "install", "verify"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "install": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verify": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
