@@ -68,7 +68,7 @@ validate_registry() {
     type == "object" and
     (.schema_version == 2) and
     (.manifest_version | type == "string" and test("^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]+$")) and
-    ((keys - ["components", "manifest_version", "profiles", "runtime", "schema_version"]) | length == 0) and
+    ((keys - ["components", "manifest_version", "profiles", "provisioning", "runtime", "schema_version"]) | length == 0) and
     (.runtime | type == "object") and
     (.runtime.id == "groomlake-runtime") and
     (.runtime.name == "Mission Systems Runtime") and
@@ -88,6 +88,36 @@ validate_registry() {
       (all(.value.compatibility.architectures[]; . == "x86" or . == "arm")) and
       (.value.compatibility.images | type == "array" and length > 0) and
       (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$")))
+    )) and
+    (.provisioning | type == "object") and
+    (.provisioning.profiles | type == "object" and length > 0) and
+    (all(.provisioning.profiles | to_entries[];
+      (.key | test("^[a-z0-9][a-z0-9.-]*$")) and
+      (.value | type == "object") and
+      (.value.image | type == "string" and length > 0) and
+      (.value.label | type == "string" and length > 0) and
+      (.value.architectures | type == "array" and length > 0) and
+      (all(.value.architectures[]; . == "x86" or . == "arm")) and
+      (.value.runtime_profile | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
+      (.value.release_channels | type == "object" and length > 0) and
+      (all(.value.release_channels[];
+        type == "object" and
+        (.label | type == "string" and length > 0) and
+        (.available | type == "boolean") and
+        (.note | type == "string") and
+        (.bootstrap | type == "object") and
+        (.bootstrap.version | type == "string" and length > 0) and
+        (.bootstrap.url | type == "string" and startswith("https://")) and
+        (.bootstrap.sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
+        (.bootstrap.filename | type == "string" and length > 0)
+      )) and
+      (.value.features | type == "object") and
+      (all(.value.features[];
+        type == "object" and
+        (.available | type == "boolean") and
+        (.required | type == "boolean") and
+        (.label | type == "string" and length > 0)
+      ))
     )) and
     (.components | type == "object" and length > 0) and
     (all(.components | to_entries[];

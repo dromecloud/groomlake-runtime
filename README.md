@@ -27,7 +27,9 @@ Komponenten. Der Server liest nach dem Git-Checkout dieselbe Datei lokal.
 Die Felder haben unterschiedliche Aufgaben:
 
 - `schema_version` beschreibt das Format der JSON-Datei.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt, zum Beispiel `2026.07.21.1`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt, aktuell `2026.07.21.2`.
+- `provisioning.profiles` ist die einzige Quelle für MSO-Image-, Architektur-, Release-, Bootstrap-
+  und Feature-Auswahl. MSO hält dafür keine lokale Matrix mehr.
 - Der Git-Commit identifies den vollständigen Runtime-Stand.
 - Die SHA-256 wird von MSO über die geladenen Manifest-Bytes berechnet und im Installationsplan
   mitgegeben.

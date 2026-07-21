@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.21.1",
+  "manifest_version": "2026.07.21.2",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -19,6 +19,44 @@
       "compatibility": {
         "architectures": ["x86"],
         "images": ["ubuntu-24.04"]
+      }
+    }
+  },
+  "provisioning": {
+    "profiles": {
+      "ubuntu-24.04": {
+        "image": "ubuntu-24.04",
+        "label": "Ubuntu 24.04 LTS",
+        "architectures": ["x86"],
+        "runtime_profile": "ironbird",
+        "release_channels": {
+          "stable": {
+            "label": "Stable",
+            "available": false,
+            "note": "Noch nicht funktional freigegeben.",
+            "bootstrap": {
+              "version": "v1.0.0",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.0.sh",
+              "sha256": "6eeeb9e85f12f63496837d3e2dbd1203856da665671fb4b4f5426ea271992c25",
+              "filename": "mso-bootstrap-v1.0.0.sh"
+            }
+          },
+          "dev": {
+            "label": "Development",
+            "available": true,
+            "note": "Nur fuer den kontrollierten Frischserver-Test.",
+            "bootstrap": {
+              "version": "v1.0.0",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.0.sh",
+              "sha256": "6eeeb9e85f12f63496837d3e2dbd1203856da665671fb4b4f5426ea271992c25",
+              "filename": "mso-bootstrap-v1.0.0.sh"
+            }
+          }
+        },
+        "features": {
+          "tailscale": { "available": true, "required": true, "label": "Tailscale" },
+          "docker": { "available": true, "required": false, "label": "Docker Engine + Compose" }
+        }
       }
     }
   },

@@ -11,7 +11,10 @@ fest, warum der Code so aufgebaut ist und welche Punkte noch offen sind.
 - `groomlake-runtime` bleibt ein eigenständiges Git-Repository.
 - `manifest.json` ist die gemeinsame Registry für MSO und MSR; sie bleibt die Root-Quelle.
 - `schema_version` beschreibt das JSON-Format.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.21.1`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.21.2`.
+- `provisioning.profiles` ist jetzt die verbindliche MSO-Quelle für Images, Architekturen, Release-Kanäle,
+  fest versionierte Bootstrap-Dateien samt SHA-256 und auswählbare Features. Toolhub hält keine lokale
+  MSO-Matrix mehr.
 - MSO übergibt im Installationsplan zusätzlich Manifest-Version, Manifest-SHA-256 und vollständigen
   Git-Commit.
 - MSR liest nach dem Checkout `manifest.json` und bricht vor jedem Installationsschritt ab,
@@ -53,10 +56,9 @@ Working Tree: sauber
 ### Noch offen
 
 1. Git-Checkout auf Codehangar deployen und `public/commit.txt` aus dem Commit erzeugen.
-2. MSO serverseitig auf den ATIS-Manifest-Endpunkt umstellen; derzeit ist die MSO-Fähigkeitsmatrix noch
-   in Toolhub-PHP fest codiert.
-3. Toolhub-Service „ATIS Client“ für den validierten serverseitigen Manifestabruf integrieren.
-4. Erst danach den automatischen Boot-Starter und weitere Komponenten bauen.
+2. MSO manuell öffnen und prüfen, dass Image, Release-Kanal und Features ausschließlich aus
+   `provisioning.profiles` angezeigt werden. Erst danach den kostenpflichtigen Frischserver-Test starten.
+3. Erst danach den automatischen Boot-Starter und weitere Komponenten bauen.
 
 ## Arbeitsregel
 

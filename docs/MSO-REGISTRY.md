@@ -12,7 +12,7 @@ drei Werte in den Installationsplan:
 ```json
 {
   "runtime": {
-    "manifest_version": "2026.07.21.1",
+    "manifest_version": "2026.07.21.2",
     "manifest_sha256": "...64 hex characters...",
     "commit": "...40 hex characters..."
   }
@@ -28,7 +28,7 @@ Checkout und prüft in dieser Reihenfolge:
 2. `manifest_version` entspricht dem Installationsplan.
 3. SHA-256 der lokalen Datei entspricht dem Installationsplan.
 4. `git rev-parse HEAD` entspricht dem Installationsplan.
-4. Erst danach werden Profil und Komponenten installiert.
+5. Erst danach werden Profil und Komponenten installiert.
 
 Jeder Unterschied beendet den Lauf vor dem ersten Installationsschritt.
 
@@ -60,10 +60,13 @@ vortäuschen kann.
 Die öffentliche Datei ist damit ein aktueller Katalog, aber kein unbestätigter Freifahrtschein. Für
 die Serveranlage werden immer Version, SHA und Commit gemeinsam verwendet.
 
+## MSO-Quelle
+
+`provisioning.profiles` liefert Images, Architekturen, Release-Kanäle, fest versionierte Bootstraps
+mit SHA-256 und Features. `lifecycle_mso_profiles()` im Toolhub liest ausschließlich diesen Abschnitt;
+die alte hardcodierte PHP-Matrix ist entfernt.
+
 ## Noch im Toolhub umzusetzen
 
-1. `lifecycle_mso_profiles()` durch den serverseitigen ATIS-Manifest-Reader ersetzen.
-2. Öffentliche URL und erwartetes Schema serverseitig konfigurieren.
-3. Manifest beim Laden und nochmals vor `create_server` abrufen.
-4. Profil-/Komponentenauswahl aus dem Manifest statt aus PHP-Hardcoding bauen.
-5. Bei Nichterreichbarkeit, ungültigem Schema oder Änderungen fail-closed abbrechen.
+1. Manuelle MSO-UI-Prüfung mit dem manifestgetriebenen Katalog durchführen.
+2. Bei Nichterreichbarkeit, ungültigem Schema oder Änderungen fail-closed abbrechen.
