@@ -4,5 +4,6 @@
 !.env.example
 *.log
 *.tmp
+dist/
 reports/
 state/

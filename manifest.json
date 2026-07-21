@@ -1,13 +1,39 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "runtime": {
+    "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
+    "description": "Freigegebene Profile und Komponenten für Groomlake-Server.",
+    "repository": "dromecloud/groomlake-runtime",
     "entrypoint": "bin/msr"
   },
   "profiles": {
-    "ironbird": "profiles/ironbird/profile.json"
+    "ironbird": {
+      "manifest": "profiles/ironbird/profile.json",
+      "display": {
+        "label": "Iron Bird",
+        "description": "Integrations- und Testprofil für neue Groomlake-Komponenten.",
+        "order": 10
+      },
+      "compatibility": {
+        "architectures": [
+          "x86"
+        ],
+        "images": [
+          "ubuntu-24.04"
+        ]
+      }
+    }
   },
   "components": {
-    "motd": "components/motd/component.json"
+    "motd": {
+      "manifest": "components/motd/component.json",
+      "display": {
+        "label": "Mission MOTD",
+        "description": "Installiert und prüft die profilbezogene Begrüßungsanzeige.",
+        "category": "system",
+        "order": 10
+      }
+    }
   }
 }

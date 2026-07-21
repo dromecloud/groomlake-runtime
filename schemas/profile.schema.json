@@ -4,25 +4,22 @@
   "title": "Groomlake profile",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "id", "label", "components", "sequences"],
+  "required": ["schema_version", "id", "components", "sequences"],
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]*$"
     },
-    "label": {
-      "type": "string",
-      "minLength": 1
-    },
     "components": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "config"],
+        "required": ["id", "config", "required", "default_enabled", "depends_on"],
         "properties": {
           "id": {
             "type": "string",
@@ -31,8 +28,40 @@
           "config": {
             "type": "string",
             "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "default_enabled": {
+            "type": "boolean"
+          },
+          "depends_on": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "required": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "default_enabled": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "sequences": {

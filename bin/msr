@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-readonly MSR_VERSION='0.1.0'
+readonly MSR_VERSION='0.2.0'
 
 log() {
   printf '[MSR] %s\n' "$*"
@@ -65,11 +65,47 @@ validate_registry() {
   local registry=$1
   jq -e '
     type == "object" and
-    (.schema_version == 1) and
+    (.schema_version == 2) and
+    ((keys - ["components", "profiles", "runtime", "schema_version"]) | length == 0) and
+    (.runtime | type == "object") and
+    (.runtime.id == "groomlake-runtime") and
     (.runtime.name == "Mission Systems Runtime") and
+    (.runtime.description | type == "string" and length > 0) and
+    (.runtime.repository == "dromecloud/groomlake-runtime") and
     (.runtime.entrypoint == "bin/msr") and
-    (.profiles | type == "object") and
-    (.components | type == "object")
+    ((.runtime | keys) - ["description", "entrypoint", "id", "name", "repository"] | length == 0) and
+    (.profiles | type == "object" and length > 0) and
+    (all(.profiles | to_entries[];
+      (.key | test("^[a-z0-9][a-z0-9-]*$")) and
+      (.value | type == "object") and
+      (.value.manifest | type == "string" and length > 0) and
+      (.value.display | type == "object") and
+      (.value.display.label | type == "string" and length > 0) and
+      (.value.display.description | type == "string" and length > 0) and
+      (.value.display.order | type == "number" and floor == .) and
+      ((.value.display | keys) - ["description", "label", "order"] | length == 0) and
+      (.value.compatibility.architectures | type == "array" and length > 0) and
+      (all(.value.compatibility.architectures[]; . == "x86" or . == "arm")) and
+      ((.value.compatibility.architectures | unique | length) == (.value.compatibility.architectures | length)) and
+      (.value.compatibility.images | type == "array" and length > 0) and
+      (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$"))) and
+      ((.value.compatibility.images | unique | length) == (.value.compatibility.images | length)) and
+      ((.value.compatibility | keys) - ["architectures", "images"] | length == 0) and
+      ((.value | keys) - ["compatibility", "display", "manifest"] | length == 0)
+    )) and
+    (.components | type == "object" and length > 0) and
+    (all(.components | to_entries[];
+      (.key | test("^[a-z0-9][a-z0-9-]*$")) and
+      (.value | type == "object") and
+      (.value.manifest | type == "string" and length > 0) and
+      (.value.display | type == "object") and
+      (.value.display.label | type == "string" and length > 0) and
+      (.value.display.description | type == "string" and length > 0) and
+      (.value.display.category | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
+      (.value.display.order | type == "number" and floor == .) and
+      ((.value.display | keys) - ["category", "description", "label", "order"] | length == 0) and
+      ((.value | keys) - ["display", "manifest"] | length == 0)
+    ))
   ' "$registry" >/dev/null || die 'Runtime manifest is invalid.'
 }
 
@@ -78,18 +114,24 @@ validate_profile() {
   local expected_id=$2
   jq -e --arg id "$expected_id" '
     type == "object" and
-    (.schema_version == 1) and
+    (.schema_version == 2) and
     (.id == $id) and
-    (.label | type == "string" and length > 0) and
-    (.components | type == "array") and
+    (.components | type == "array" and length > 0) and
+    (([.components[].id] | unique | length) == (.components | length)) and
     (all(.components[];
       type == "object" and
       (.id | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
       (.config | type == "string" and length > 0) and
-      ((keys - ["config", "id"]) | length == 0)
+      (.required | type == "boolean") and
+      (.default_enabled | type == "boolean") and
+      ((.required == false) or (.default_enabled == true)) and
+      (.depends_on | type == "array") and
+      ((.depends_on | unique | length) == (.depends_on | length)) and
+      (all(.depends_on[]; type == "string" and test("^[a-z0-9][a-z0-9-]*$"))) and
+      ((keys - ["config", "default_enabled", "depends_on", "id", "required"]) | length == 0)
     )) and
     (.sequences | type == "array") and
-    ((keys - ["components", "id", "label", "schema_version", "sequences"]) | length == 0)
+    ((keys - ["components", "id", "schema_version", "sequences"]) | length == 0)
   ' "$profile_file" >/dev/null || die "Profile manifest is invalid: $expected_id"
 }
 
@@ -104,6 +146,32 @@ validate_component() {
     (.verify | type == "string" and length > 0) and
     ((keys - ["id", "install", "schema_version", "verify"]) | length == 0)
   ' "$component_file" >/dev/null || die "Component manifest is invalid: $expected_id"
+}
+
+validate_profile_links() {
+  local registry=$1
+  local profile_file=$2
+  local count index component_id enabled dependency_count dependency_index dependency_id dependency_enabled
+
+  count=$(jq '.components | length' "$profile_file")
+  for (( index=0; index<count; index++ )); do
+    component_id=$(jq -r ".components[$index].id" "$profile_file")
+    jq -e --arg id "$component_id" '.components[$id] != null' "$registry" >/dev/null \
+      || die "Profile references an unregistered component: $component_id"
+
+    enabled=$(jq -r ".components[$index] | (.required or .default_enabled)" "$profile_file")
+    dependency_count=$(jq ".components[$index].depends_on | length" "$profile_file")
+    for (( dependency_index=0; dependency_index<dependency_count; dependency_index++ )); do
+      dependency_id=$(jq -r ".components[$index].depends_on[$dependency_index]" "$profile_file")
+      [[ "$dependency_id" != "$component_id" ]] || die "Component depends on itself: $component_id"
+      jq -e --arg id "$dependency_id" 'any(.components[]; .id == $id)' "$profile_file" >/dev/null \
+        || die "Profile component $component_id depends on missing component: $dependency_id"
+      dependency_enabled=$(jq -r --arg id "$dependency_id" '.components[] | select(.id == $id) | (.required or .default_enabled)' "$profile_file")
+      if [[ "$enabled" == 'true' && "$dependency_enabled" != 'true' ]]; then
+        die "Enabled component $component_id depends on disabled component: $dependency_id"
+      fi
+    done
+  done
 }
 
 apply_plan() {
@@ -144,23 +212,26 @@ apply_plan() {
 
   profile_id=$(jq -r '.profile' "$plan")
   run_id=$(jq -r '.run_id' "$plan")
-  profile_relative=$(jq -er --arg id "$profile_id" '.profiles[$id] // empty' "$registry") || die "Profile is not registered: $profile_id"
+  profile_relative=$(jq -er --arg id "$profile_id" '.profiles[$id].manifest // empty' "$registry") \
+    || die "Profile is not registered: $profile_id"
   profile_file=$(resolve_file "$repo_root" "$profile_relative")
   profile_dir=$(dirname "$profile_file")
   validate_profile "$profile_file" "$profile_id"
+  validate_profile_links "$registry" "$profile_file"
 
   log "run=$run_id profile=$profile_id version=$MSR_VERSION"
 
   local component_count component_index component_id config_relative config_file
   local component_relative component_file component_dir install_relative verify_relative install_file verify_file
-  component_count=$(jq '.components | length' "$profile_file")
+  component_count=$(jq '[.components[] | select(.required or .default_enabled)] | length' "$profile_file")
 
   for (( component_index=0; component_index<component_count; component_index++ )); do
-    component_id=$(jq -r ".components[$component_index].id" "$profile_file")
-    config_relative=$(jq -r ".components[$component_index].config" "$profile_file")
+    component_id=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].id" "$profile_file")
+    config_relative=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].config" "$profile_file")
     config_file=$(resolve_file "$profile_dir" "$config_relative")
 
-    component_relative=$(jq -er --arg id "$component_id" '.components[$id] // empty' "$registry") || die "Component is not registered: $component_id"
+    component_relative=$(jq -er --arg id "$component_id" '.components[$id].manifest // empty' "$registry") \
+      || die "Component is not registered: $component_id"
     component_file=$(resolve_file "$repo_root" "$component_relative")
     component_dir=$(dirname "$component_file")
     validate_component "$component_file" "$component_id"

@@ -27,7 +27,7 @@ groomlake-runtime/
 │       └── sequences/
 ├── schemas/                     maschinenlesbare Vertrags-Schemas
 ├── tests/                       entsteht zusammen mit realen Verbrauchern
-└── scripts/                     Entwicklungs- und Repository-Prüfungen
+└── scripts/                     Entwicklungs- und Release-Prüfungen
 ```
 
 ## Ablageregeln
@@ -43,6 +43,24 @@ groomlake-runtime/
   Blackbox-Collector übertragen.
 - Geheimnisse, private Schlüssel, Tokens und produktive Konfigurationen gehören niemals in dieses
   Repository.
+
+## Registry-Vertrag
+
+`manifest.json` ist die technische Quellen-Registry für Runtime und Mission Systems Officer. Sie
+registriert Profile und Komponenten, enthält die Texte für die MSO-Oberfläche und beschreibt die
+Kompatibilität mit Architektur und Systemimage. Profilmanifeste ergänzen die konkrete Zusammensetzung,
+Pflichtauswahl, Standards und Abhängigkeiten.
+
+Für einen veröffentlichten Commit erzeugt das folgende Skript ein deterministisches Runtime-Archiv
+und ein vollständig aufgelöstes Release-Manifest mit SHA-256:
+
+```bash
+scripts/build-release.sh --commit HEAD
+```
+
+MSO importiert später nur dieses unveränderliche Release-Manifest. Ein neuer Commit auf `main` wird
+zunächst lediglich als erkannt registriert und nie automatisch als Stable freigegeben. Der genaue
+Übergabevertrag steht in `docs/MSO-REGISTRY.md`.
 
 ## Ausführungsvertrag
 
@@ -88,6 +106,7 @@ ergänzt:
 1. Schema für Installationsplan, Profil und Komponente festlegen. **Erledigt**
 2. Minimalen MSR-Einstiegspunkt `bin/msr` bauen. **Erledigt**
 3. `motd` als erste gemeinsame Komponente im Iron-Bird-Profil umsetzen. **Erledigt**
-4. Den gleichen Weg auf einem frischen Ubuntu-Server über Cloud-init prüfen.
-5. Danach `health` und den späteren Blackbox-Transport einzeln ergänzen.
-6. Erst nach realen Verbrauchern weitere Profile aktivieren.
+4. Manifest- und Release-Vertrag zwischen Runtime und MSO festlegen. **Erledigt**
+5. Den gleichen Weg auf einem frischen Ubuntu-Server über Cloud-init prüfen.
+6. Danach `health` und den späteren Blackbox-Transport einzeln ergänzen.
+7. Erst nach realen Verbrauchern weitere Profile aktivieren.

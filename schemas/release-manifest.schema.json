@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://groomlake.drome.cloud/schemas/release-manifest.schema.json",
+  "title": "Groomlake immutable release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release", "catalog", "definitions"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "archive"],
+      "properties": {
+        "repository": {
+          "const": "dromecloud/groomlake-runtime"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "archive": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filename", "sha256"],
+          "properties": {
+            "filename": {
+              "type": "string",
+              "pattern": "^groomlake-runtime-[0-9a-f]{12}\\.tar\\.gz$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "catalog": {
+      "$ref": "runtime-manifest.schema.json"
+    },
+    "definitions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profiles", "components"],
+      "properties": {
+        "profiles": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "profile.schema.json"
+          }
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "component.schema.json"
+          }
+        }
+      }
+    }
+  }
+}
