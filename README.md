@@ -12,7 +12,7 @@ groomlake-runtime/
 ├── lib/                         gemeinsame Funktionen der MSR
 ├── components/                  profilübergreifend installierbare Bausteine
 ├── profiles/                    Zusammensetzung und Konfiguration pro Zone
-├── public/manifest.json         öffentliche MSO-Registry
+├── manifest.json              gemeinsame Registry (Quelle)
 ├── schemas/                     maschinenlesbare Vertrags-Schemas
 ├── tests/                       Vertrags- und Smoke-Tests
 └── scripts/                     Entwicklungsprüfungen
@@ -20,9 +20,9 @@ groomlake-runtime/
 
 ## Gemeinsame Manifest-Wahrheit
 
-`public/manifest.json` ist die technische Registry für MSO und MSR. MSO lädt diese Datei über die
-Codehangar-Subdomain und baut daraus die sichtbaren Profile und Komponenten. Der Server liest nach
-dem Git-Checkout dieselbe Datei lokal.
+`manifest.json` ist die technische Registry für MSO und MSR. MSO lädt sie über den öffentlichen
+Codehangar-ATIS-Handler (`public/atis.php`) und baut daraus die sichtbaren Profile und
+Komponenten. Der Server liest nach dem Git-Checkout dieselbe Datei lokal.
 
 Die Felder haben unterschiedliche Aufgaben:
 
@@ -38,9 +38,14 @@ Werte vor dem ersten Installationsschritt und bricht bei jeder Abweichung ab.
 
 ## Öffentliche Bereitstellung
 
-Nur `public/manifest.json` wird öffentlich ausgeliefert. Der Git-Checkout liegt außerhalb des
-Document-Roots; der Webserver zeigt per Alias ausschließlich auf diese Datei. Der `.git`-Ordner wird
-niemals öffentlich erreichbar gemacht.
+Der Git-Checkout liegt außerhalb des Document-Roots. Öffentlich erreichbar ist ausschließlich der
+read-only ATIS-Handler `public/atis.php`; er liest eine fest verdrahtete Datei aus dem
+Repository-Root und akzeptiert weder Pfade noch Befehle. Der `.git`-Ordner wird niemals öffentlich
+erreichbar gemacht.
+
+Der Handler liefert nur bei `GET`/`HEAD` JSON, validiert die Mindeststruktur und setzt SHA-256,
+ETag sowie Manifest-Version als Header. `public/commit.txt` kann vom Deployment erzeugt werden,
+ist nicht Teil des Git-Repositories und wird nur als geprüfter 40-stelliger Commit-Header verwendet.
 
 Die öffentliche Datei enthält keine Geheimnisse. Tailscale-Keys, Hetzner-Tokens, SSH-Private-Keys und
 produktive Konfigurationen gehören nicht in dieses Repository.
@@ -55,7 +60,7 @@ startet MSR einmalig:
   --plan /etc/groomlake/install-plan.json
 ```
 
-MSR liest danach `public/manifest.json`, prüft Manifest-Version, SHA-256 und Git-Commit und führt nur
+MSR liest danach `manifest.json`, prüft Manifest-Version, SHA-256 und Git-Commit und führt nur
 die im Profil und Manifest registrierten Komponenten aus.
 
 ## Erster vertikaler Schnitt

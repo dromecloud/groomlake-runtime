@@ -8,8 +8,8 @@ trap 'rm -rf "$work_dir"' EXIT
 target_root="$work_dir/root"
 plan="$work_dir/plan.json"
 mkdir -p "$target_root"
-manifest_version=$(jq -r '.manifest_version' "$repo_root/public/manifest.json")
-manifest_sha=$(shasum -a 256 "$repo_root/public/manifest.json" | awk '{print $1}')
+manifest_version=$(jq -r '.manifest_version' "$repo_root/manifest.json")
+manifest_sha=$(shasum -a 256 "$repo_root/manifest.json" | awk '{print $1}')
 runtime_commit=$(git -C "$repo_root" rev-parse HEAD)
 
 write_plan() {

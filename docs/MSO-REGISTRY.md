@@ -2,10 +2,10 @@
 
 ## Gemeinsame Quelle
 
-`public/manifest.json` ist die gemeinsame technische Wahrheit für Mission Systems Officer und Mission
+`manifest.json` ist die gemeinsame technische Wahrheit für Mission Systems Officer und Mission
 Systems Runtime. Es gibt keine zweite manuell gepflegte Komponentenliste im Toolhub.
 
-MSO liest die Datei serverseitig über die Codehangar-Subdomain. Die Browseroberfläche erhält danach
+MSO liest die Datei serverseitig über den Codehangar-ATIS-Handler. Die Browseroberfläche erhält danach
 die bereits gelesene und validierte Datenstruktur. Beim Erstellen einer Maschine schreibt MSO diese
 drei Werte in den Installationsplan:
 
@@ -21,14 +21,14 @@ drei Werte in den Installationsplan:
 
 ## Prüfung auf dem Server
 
-Cloud-init checkt den angegebenen Commit aus. MSR liest danach `public/manifest.json` aus genau diesem
+Cloud-init checkt den angegebenen Commit aus. MSR liest danach `manifest.json` aus genau diesem
 Checkout und prüft in dieser Reihenfolge:
 
 1. Manifest ist gültiges JSON und entspricht dem Schema.
 2. `manifest_version` entspricht dem Installationsplan.
 3. SHA-256 der lokalen Datei entspricht dem Installationsplan.
 4. `git rev-parse HEAD` entspricht dem Installationsplan.
-5. Erst danach werden Profil und Komponenten installiert.
+4. Erst danach werden Profil und Komponenten installiert.
 
 Jeder Unterschied beendet den Lauf vor dem ersten Installationsschritt.
 
@@ -40,14 +40,14 @@ Der Deployment-Checkout liegt beispielsweise unter:
 /srv/codehangar/groomlake-runtime/
 ```
 
-Der Pfad ist nicht öffentlich. Der Webserver veröffentlicht ausschließlich:
+Der Pfad ist nicht öffentlich. Der Webserver veröffentlicht ausschließlich den read-only Handler:
 
 ```text
-/groomlake-runtime/manifest.json
+/groomlake-runtime/atis.php
 ```
 
 Der `.git`-Ordner, Profile und Installationsskripte werden nicht über den Webserver freigegeben,
-sofern wir nur die MSO-Registry öffentlich benötigen. Die Datei enthält nur nichtgeheime
+sofern wir nur die MSO-Registry öffentlich benötigen. Der Handler liest intern die Root-Datei `manifest.json` und enthält nur nichtgeheime
 Fähigkeits- und Anzeigeinformationen.
 
 ## Aktualisierung
@@ -62,7 +62,7 @@ die Serveranlage werden immer Version, SHA und Commit gemeinsam verwendet.
 
 ## Noch im Toolhub umzusetzen
 
-1. `lifecycle_mso_profiles()` durch einen serverseitigen Manifest-Reader ersetzen.
+1. `lifecycle_mso_profiles()` durch den serverseitigen ATIS-Manifest-Reader ersetzen.
 2. Öffentliche URL und erwartetes Schema serverseitig konfigurieren.
 3. Manifest beim Laden und nochmals vor `create_server` abrufen.
 4. Profil-/Komponentenauswahl aus dem Manifest statt aus PHP-Hardcoding bauen.

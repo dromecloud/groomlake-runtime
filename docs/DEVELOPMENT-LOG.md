@@ -9,14 +9,14 @@ fest, warum der Code so aufgebaut ist und welche Punkte noch offen sind.
 ### Entschieden
 
 - `groomlake-runtime` bleibt ein eigenständiges Git-Repository.
-- `public/manifest.json` ist die gemeinsame Registry für MSO und MSR.
+- `manifest.json` ist die gemeinsame Registry für MSO und MSR; sie bleibt die Root-Quelle.
 - `schema_version` beschreibt das JSON-Format.
 - `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.21.1`.
 - MSO übergibt im Installationsplan zusätzlich Manifest-Version, Manifest-SHA-256 und vollständigen
   Git-Commit.
-- MSR liest nach dem Checkout `public/manifest.json` und bricht vor jedem Installationsschritt ab,
+- MSR liest nach dem Checkout `manifest.json` und bricht vor jedem Installationsschritt ab,
   wenn Version, SHA oder Commit nicht übereinstimmen.
-- `scripts/` bleibt intern. Der Webserver veröffentlicht ausschließlich `public/manifest.json`.
+- `scripts/` bleibt intern. Der Webserver veröffentlicht ausschließlich den read-only `public/atis.php`-Handler (ATIS), der die Root-Datei ausliefert.
 - `build-release.sh` und die frühere Paket-/Archiv-Idee wurden entfernt. Der Server arbeitet direkt mit
   dem exakt ausgecheckten Git-Commit.
 
@@ -26,7 +26,7 @@ fest, warum der Code so aufgebaut ist und welche Punkte noch offen sind.
 MSO lädt öffentliches Manifest
 → MSO erstellt Installationsplan mit Version, SHA und Commit
 → Cloud-init checkt exakt diesen Commit aus
-→ MSR liest public/manifest.json lokal
+→ MSR liest manifest.json lokal
 → Version/SHA/Commit prüfen
 → Profil und Komponenten ausführen
 ```
@@ -52,12 +52,11 @@ Working Tree: sauber
 
 ### Noch offen
 
-1. Git-Checkout auf Codehangar deployen.
-2. Nur `public/manifest.json` über die Codehangar-Subdomain veröffentlichen.
-3. MSO serverseitig auf diesen Manifest-Endpunkt umstellen; derzeit ist die MSO-Fähigkeitsmatrix noch
+1. Git-Checkout auf Codehangar deployen und `public/commit.txt` aus dem Commit erzeugen.
+2. MSO serverseitig auf den ATIS-Manifest-Endpunkt umstellen; derzeit ist die MSO-Fähigkeitsmatrix noch
    in Toolhub-PHP fest codiert.
-4. Späteres Ticket: Handler/InfoCollector für validierten serverseitigen Manifestabruf.
-5. Erst danach den automatischen Boot-Starter und weitere Komponenten bauen.
+3. Toolhub-Service „ATIS Client“ für den validierten serverseitigen Manifestabruf integrieren.
+4. Erst danach den automatischen Boot-Starter und weitere Komponenten bauen.
 
 ## Arbeitsregel
 

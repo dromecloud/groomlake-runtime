@@ -171,7 +171,7 @@ apply_plan() {
   [[ -d "$target_root" ]] || die "Target root does not exist: $target_root"
   require_jq
   repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
-  registry="$repo_root/public/manifest.json"
+  registry="$repo_root/manifest.json"
   [[ -r "$registry" ]] || die 'Runtime manifest is missing.'
   validate_plan "$plan"
   plan_manifest_version=$(jq -r '.runtime.manifest_version' "$plan")
