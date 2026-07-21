@@ -8,36 +8,48 @@ trap 'rm -rf "$work_dir"' EXIT
 target_root="$work_dir/root"
 plan="$work_dir/plan.json"
 mkdir -p "$target_root"
+manifest_version=$(jq -r '.manifest_version' "$repo_root/public/manifest.json")
+manifest_sha=$(shasum -a 256 "$repo_root/public/manifest.json" | awk '{print $1}')
+runtime_commit=$(git -C "$repo_root" rev-parse HEAD)
 
-printf '%s\n' \
-  '{' \
-  '  "schema_version": 1,' \
-  '  "run_id": "local-motd-smoke",' \
-  '  "profile": "ironbird"' \
-  '}' > "$plan"
+write_plan() {
+  local profile=$1 output=$2
+  printf '%s\n' \
+    '{' \
+    '  "schema_version": 2,' \
+    '  "runtime": {' \
+    "    \"manifest_version\": \"$manifest_version\"," \
+    "    \"manifest_sha256\": \"$manifest_sha\"," \
+    "    \"commit\": \"$runtime_commit\"" \
+    '  },' \
+    '  "run_id": "local-motd-smoke",' \
+    "  \"profile\": \"$profile\"" \
+    '}' > "$output"
+}
 
+write_plan ironbird "$plan"
 "$repo_root/bin/msr" apply --plan "$plan" --root "$target_root"
 "$repo_root/bin/msr" apply --plan "$plan" --root "$target_root"
 
-cmp -s \
-  "$repo_root/profiles/ironbird/config/motd.txt" \
-  "$target_root/etc/groomlake/motd.txt"
+cmp -s "$repo_root/profiles/ironbird/config/motd.txt" "$target_root/etc/groomlake/motd.txt"
 [[ -x "$target_root/etc/update-motd.d/10-groomlake-profile" ]]
-
 rendered=$(GROOMLAKE_ETC_ROOT="$target_root/etc" "$target_root/etc/update-motd.d/10-groomlake-profile")
 expected=$(cat "$repo_root/profiles/ironbird/config/motd.txt")
 [[ "$rendered" == "$expected" ]]
 
 unknown_plan="$work_dir/unknown-plan.json"
-printf '%s\n' \
-  '{' \
-  '  "schema_version": 1,' \
-  '  "run_id": "unknown-profile-smoke",' \
-  '  "profile": "unknown"' \
-  '}' > "$unknown_plan"
-
+write_plan unknown "$unknown_plan"
 if "$repo_root/bin/msr" apply --plan "$unknown_plan" --root "$target_root" >/dev/null 2>&1; then
   printf 'Unknown profile was not rejected.\n' >&2
+  exit 1
+fi
+
+mismatch_plan="$work_dir/mismatch-plan.json"
+write_plan ironbird "$mismatch_plan"
+jq '.runtime.manifest_version = "2099.01.01.1"' "$mismatch_plan" > "$mismatch_plan.next"
+mv "$mismatch_plan.next" "$mismatch_plan"
+if "$repo_root/bin/msr" apply --plan "$mismatch_plan" --root "$target_root" >/dev/null 2>&1; then
+  printf 'Manifest version mismatch was not rejected.\n' >&2
   exit 1
 fi
 

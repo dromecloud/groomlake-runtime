@@ -1,9 +1,8 @@
 # Groomlake Runtime
 
-Groomlake Runtime enthält die Mission Systems Runtime (MSR), wiederverwendbare Serverkomponenten, Zonenprofile und deren
-Validierung. Zielserver laden ausschließlich dieses Repository und checken immer einen von Mission
-Systems Officer vorgegebenen Commit aus. Es gibt kein unkontrolliertes `git pull` auf einen beweglichen
-Branch.
+Groomlake Runtime enthält die Mission Systems Runtime (MSR), wiederverwendbare Serverkomponenten,
+Zonenprofile und deren Validierung. Zielserver laden dieses Repository per Git und checken den von MSO
+vorgegebenen Commit aus.
 
 ## Struktur
 
@@ -13,73 +12,53 @@ groomlake-runtime/
 ├── lib/                         gemeinsame Funktionen der MSR
 ├── components/                  profilübergreifend installierbare Bausteine
 ├── profiles/                    Zusammensetzung und Konfiguration pro Zone
-│   ├── ironbird/
-│   │   ├── config/
-│   │   └── sequences/
-│   ├── recon/
-│   │   ├── config/
-│   │   └── sequences/
-│   ├── intelligence/
-│   │   ├── config/
-│   │   └── sequences/
-│   └── blackops/
-│       ├── config/
-│       └── sequences/
+├── public/manifest.json         öffentliche MSO-Registry
 ├── schemas/                     maschinenlesbare Vertrags-Schemas
-├── tests/                       entsteht zusammen mit realen Verbrauchern
-└── scripts/                     Entwicklungs- und Release-Prüfungen
+├── tests/                       Vertrags- und Smoke-Tests
+└── scripts/                     Entwicklungsprüfungen
 ```
 
-## Ablageregeln
+## Gemeinsame Manifest-Wahrheit
 
-- Eine installierbare Fähigkeit liegt genau einmal unter `components/`.
-- Profile kopieren keine Installer. Sie wählen Komponenten aus und liefern nur ihre eigene
-  Konfiguration, MOTD-Inhalte und Startsequenzen.
-- Hat etwas einen eigenen Installations- und Prüfablauf, ist es eine Komponente — auch wenn zunächst
-  nur ein Profil sie verwendet.
-- `verify`-Logik, die auf dem Zielserver benötigt wird, gehört zur jeweiligen Komponente.
-- Entwicklungs-, Vertrags- und Smoke-Tests gehören unter `tests/`.
-- Laufzeitberichte und Rohlogs gehören nicht ins Git. Sie werden künftig vom Blackbox-Agenten an den
-  Blackbox-Collector übertragen.
-- Geheimnisse, private Schlüssel, Tokens und produktive Konfigurationen gehören niemals in dieses
-  Repository.
+`public/manifest.json` ist die technische Registry für MSO und MSR. MSO lädt diese Datei über die
+Codehangar-Subdomain und baut daraus die sichtbaren Profile und Komponenten. Der Server liest nach
+dem Git-Checkout dieselbe Datei lokal.
 
-## Registry-Vertrag
+Die Felder haben unterschiedliche Aufgaben:
 
-`manifest.json` ist die technische Quellen-Registry für Runtime und Mission Systems Officer. Sie
-registriert Profile und Komponenten, enthält die Texte für die MSO-Oberfläche und beschreibt die
-Kompatibilität mit Architektur und Systemimage. Profilmanifeste ergänzen die konkrete Zusammensetzung,
-Pflichtauswahl, Standards und Abhängigkeiten.
+- `schema_version` beschreibt das Format der JSON-Datei.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt, zum Beispiel `2026.07.21.1`.
+- Der Git-Commit identifies den vollständigen Runtime-Stand.
+- Die SHA-256 wird von MSO über die geladenen Manifest-Bytes berechnet und im Installationsplan
+  mitgegeben.
 
-Für einen veröffentlichten Commit erzeugt das folgende Skript ein deterministisches Runtime-Archiv
-und ein vollständig aufgelöstes Release-Manifest mit SHA-256:
+Eine Manifest-Änderung erhält immer eine neue `manifest_version`. MSO schreibt beim Erstellen in den
+Installationsplan Manifest-Version, Manifest-SHA und vollständigen Commit. MSR vergleicht alle drei
+Werte vor dem ersten Installationsschritt und bricht bei jeder Abweichung ab.
 
-```bash
-scripts/build-release.sh --commit HEAD
-```
+## Öffentliche Bereitstellung
 
-MSO importiert später nur dieses unveränderliche Release-Manifest. Ein neuer Commit auf `main` wird
-zunächst lediglich als erkannt registriert und nie automatisch als Stable freigegeben. Der genaue
-Übergabevertrag steht in `docs/MSO-REGISTRY.md`.
+Nur `public/manifest.json` wird öffentlich ausgeliefert. Der Git-Checkout liegt außerhalb des
+Document-Roots; der Webserver zeigt per Alias ausschließlich auf diese Datei. Der `.git`-Ordner wird
+niemals öffentlich erreichbar gemacht.
+
+Die öffentliche Datei enthält keine Geheimnisse. Tailscale-Keys, Hetzner-Tokens, SSH-Private-Keys und
+produktive Konfigurationen gehören nicht in dieses Repository.
 
 ## Ausführungsvertrag
 
-Cloud-init erzeugt den serverindividuellen Installationsplan, checkt den vom Mission Systems Officer
-freigegebenen Commit aus und startet MSR einmalig:
+Cloud-init erzeugt den serverindividuellen Installationsplan, checkt den exakten Commit aus und
+startet MSR einmalig:
 
 ```bash
 /opt/groomlake-runtime/bin/msr apply \
   --plan /etc/groomlake/install-plan.json
 ```
 
-Der Installationsplan enthält in der ersten Version ausschließlich Vertragsversion, Lauf-ID und
-Profil-ID. MSR führt niemals pauschal Dateien aus einem Verzeichnis aus. `manifest.json` registriert
-die erlaubten Profile und Komponenten; das Profilmanifest bestimmt deren Reihenfolge und liefert
-die profilbezogene Konfiguration. Jede Komponente installiert und prüft ihr Ergebnis selbst.
+MSR liest danach `public/manifest.json`, prüft Manifest-Version, SHA-256 und Git-Commit und führt nur
+die im Profil und Manifest registrierten Komponenten aus.
 
 ## Erster vertikaler Schnitt
-
-Der erste vollständig ausführbare Weg ist bewusst klein:
 
 ```text
 Installationsplan
@@ -91,22 +70,15 @@ Installationsplan
 ```
 
 Der lokale Smoke-Test schreibt ausschließlich in ein temporäres Zielverzeichnis. Er führt MSR
-zweimal aus, prüft damit die Wiederholbarkeit und stellt sicher, dass ein unbekanntes Profil
-abgelehnt wird:
+zweimal aus und prüft zusätzlich unbekannte Profile sowie einen Manifest-Versionsfehler:
 
 ```bash
-tests/smoke/msr-motd.sh
+scripts/check.sh
 ```
 
-## Aufbaufolge
+## Ablageregeln
 
-Unterordner, Verträge und ausführbare Dateien werden nur zusammen mit einem funktionalen Verbraucher
-ergänzt:
-
-1. Schema für Installationsplan, Profil und Komponente festlegen. **Erledigt**
-2. Minimalen MSR-Einstiegspunkt `bin/msr` bauen. **Erledigt**
-3. `motd` als erste gemeinsame Komponente im Iron-Bird-Profil umsetzen. **Erledigt**
-4. Manifest- und Release-Vertrag zwischen Runtime und MSO festlegen. **Erledigt**
-5. Den gleichen Weg auf einem frischen Ubuntu-Server über Cloud-init prüfen.
-6. Danach `health` und den späteren Blackbox-Transport einzeln ergänzen.
-7. Erst nach realen Verbrauchern weitere Profile aktivieren.
+- Eine installierbare Fähigkeit liegt genau einmal unter `components/`.
+- Profile kopieren keine Installer, sondern wählen Komponenten und liefern ihre Konfiguration.
+- Laufzeitberichte und Rohlogs gehören nicht ins Git.
+- Geheimnisse und produktive Zugangsdaten gehören niemals in dieses Repository.

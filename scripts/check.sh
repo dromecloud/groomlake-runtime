@@ -8,17 +8,13 @@ bash -n \
   bin/msr \
   components/motd/install.sh \
   components/motd/verify.sh \
-  scripts/build-release.sh \
   scripts/check.sh \
-  tests/smoke/msr-motd.sh \
-  tests/smoke/release-manifest.sh
+  tests/smoke/msr-motd.sh
 sh -n components/motd/render.sh
 
 find . -path './.git' -prune -o -name '*.json' -type f -print0 \
   | xargs -0 -n1 jq -e . >/dev/null
 
 tests/smoke/msr-motd.sh
-tests/smoke/release-manifest.sh
 git diff --check
-
 printf 'All Groomlake Runtime checks passed.\n'

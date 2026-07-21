@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-readonly MSR_VERSION='0.2.0'
+readonly MSR_VERSION='0.3.0'
 
-log() {
-  printf '[MSR] %s\n' "$*"
-}
-
-die() {
-  printf '[MSR] ERROR: %s\n' "$*" >&2
-  exit 1
-}
-
+log() { printf '[MSR] %s\n' "$*"; }
+die() { printf '[MSR] ERROR: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat >&2 <<'EOF'
 Usage:
@@ -28,37 +21,45 @@ validate_relative_path() {
 }
 
 resolve_file() {
-  local base=$1
-  local relative=$2
-  local candidate base_real candidate_dir_real
-
+  local base=$1 relative=$2 candidate base_real candidate_dir_real
   validate_relative_path "$relative"
   candidate="$base/$relative"
   [[ -f "$candidate" ]] || die "Declared file does not exist: $relative"
-
   base_real=$(cd "$base" && pwd -P)
   candidate_dir_real=$(cd "$(dirname "$candidate")" && pwd -P)
   case "$candidate_dir_real/" in
     "$base_real/"*) ;;
     *) die "Declared file leaves its allowed directory: $relative" ;;
   esac
-
   printf '%s/%s\n' "$candidate_dir_real" "$(basename "$candidate")"
 }
 
-require_jq() {
-  command -v jq >/dev/null 2>&1 || die 'jq is required but is not installed.'
+require_jq() { command -v jq >/dev/null 2>&1 || die 'jq is required but is not installed.'; }
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    die 'sha256sum or shasum is required.'
+  fi
 }
 
 validate_plan() {
   local plan=$1
   jq -e '
     type == "object" and
-    (.schema_version == 1) and
+    (.schema_version == 2) and
     (.run_id | type == "string" and test("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")) and
     (.profile | type == "string" and test("^[a-z0-9][a-z0-9-]{0,63}$")) and
-    ((keys - ["profile", "run_id", "schema_version"]) | length == 0)
-  ' "$plan" >/dev/null || die 'Installation plan does not match schema version 1.'
+    (.runtime | type == "object") and
+    (.runtime.manifest_version | type == "string" and test("^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]+$")) and
+    (.runtime.manifest_sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
+    (.runtime.commit | type == "string" and test("^[0-9a-f]{40}$")) and
+    ((.runtime | keys) - ["commit", "manifest_sha256", "manifest_version"] | length == 0) and
+    ((keys - ["profile", "run_id", "runtime", "schema_version"]) | length == 0)
+  ' "$plan" >/dev/null || die 'Installation plan does not match schema version 2.'
 }
 
 validate_registry() {
@@ -66,7 +67,8 @@ validate_registry() {
   jq -e '
     type == "object" and
     (.schema_version == 2) and
-    ((keys - ["components", "profiles", "runtime", "schema_version"]) | length == 0) and
+    (.manifest_version | type == "string" and test("^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]+$")) and
+    ((keys - ["components", "manifest_version", "profiles", "runtime", "schema_version"]) | length == 0) and
     (.runtime | type == "object") and
     (.runtime.id == "groomlake-runtime") and
     (.runtime.name == "Mission Systems Runtime") and
@@ -79,43 +81,32 @@ validate_registry() {
       (.key | test("^[a-z0-9][a-z0-9-]*$")) and
       (.value | type == "object") and
       (.value.manifest | type == "string" and length > 0) and
-      (.value.display | type == "object") and
       (.value.display.label | type == "string" and length > 0) and
       (.value.display.description | type == "string" and length > 0) and
       (.value.display.order | type == "number" and floor == .) and
-      ((.value.display | keys) - ["description", "label", "order"] | length == 0) and
       (.value.compatibility.architectures | type == "array" and length > 0) and
       (all(.value.compatibility.architectures[]; . == "x86" or . == "arm")) and
-      ((.value.compatibility.architectures | unique | length) == (.value.compatibility.architectures | length)) and
       (.value.compatibility.images | type == "array" and length > 0) and
-      (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$"))) and
-      ((.value.compatibility.images | unique | length) == (.value.compatibility.images | length)) and
-      ((.value.compatibility | keys) - ["architectures", "images"] | length == 0) and
-      ((.value | keys) - ["compatibility", "display", "manifest"] | length == 0)
+      (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$")))
     )) and
     (.components | type == "object" and length > 0) and
     (all(.components | to_entries[];
       (.key | test("^[a-z0-9][a-z0-9-]*$")) and
       (.value | type == "object") and
       (.value.manifest | type == "string" and length > 0) and
-      (.value.display | type == "object") and
       (.value.display.label | type == "string" and length > 0) and
       (.value.display.description | type == "string" and length > 0) and
       (.value.display.category | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
-      (.value.display.order | type == "number" and floor == .) and
-      ((.value.display | keys) - ["category", "description", "label", "order"] | length == 0) and
-      ((.value | keys) - ["display", "manifest"] | length == 0)
+      (.value.display.order | type == "number" and floor == .)
     ))
   ' "$registry" >/dev/null || die 'Runtime manifest is invalid.'
 }
 
 validate_profile() {
-  local profile_file=$1
-  local expected_id=$2
+  local profile_file=$1 expected_id=$2
   jq -e --arg id "$expected_id" '
     type == "object" and
-    (.schema_version == 2) and
-    (.id == $id) and
+    (.schema_version == 2) and (.id == $id) and
     (.components | type == "array" and length > 0) and
     (([.components[].id] | unique | length) == (.components | length)) and
     (all(.components[];
@@ -127,38 +118,29 @@ validate_profile() {
       ((.required == false) or (.default_enabled == true)) and
       (.depends_on | type == "array") and
       ((.depends_on | unique | length) == (.depends_on | length)) and
-      (all(.depends_on[]; type == "string" and test("^[a-z0-9][a-z0-9-]*$"))) and
-      ((keys - ["config", "default_enabled", "depends_on", "id", "required"]) | length == 0)
+      (all(.depends_on[]; type == "string" and test("^[a-z0-9][a-z0-9-]*$")))
     )) and
-    (.sequences | type == "array") and
-    ((keys - ["components", "id", "schema_version", "sequences"]) | length == 0)
+    (.sequences | type == "array")
   ' "$profile_file" >/dev/null || die "Profile manifest is invalid: $expected_id"
 }
 
 validate_component() {
-  local component_file=$1
-  local expected_id=$2
+  local component_file=$1 expected_id=$2
   jq -e --arg id "$expected_id" '
-    type == "object" and
-    (.schema_version == 1) and
-    (.id == $id) and
+    type == "object" and (.schema_version == 1) and (.id == $id) and
     (.install | type == "string" and length > 0) and
-    (.verify | type == "string" and length > 0) and
-    ((keys - ["id", "install", "schema_version", "verify"]) | length == 0)
+    (.verify | type == "string" and length > 0)
   ' "$component_file" >/dev/null || die "Component manifest is invalid: $expected_id"
 }
 
 validate_profile_links() {
-  local registry=$1
-  local profile_file=$2
+  local registry=$1 profile_file=$2
   local count index component_id enabled dependency_count dependency_index dependency_id dependency_enabled
-
   count=$(jq '.components | length' "$profile_file")
   for (( index=0; index<count; index++ )); do
     component_id=$(jq -r ".components[$index].id" "$profile_file")
     jq -e --arg id "$component_id" '.components[$id] != null' "$registry" >/dev/null \
       || die "Profile references an unregistered component: $component_id"
-
     enabled=$(jq -r ".components[$index] | (.required or .default_enabled)" "$profile_file")
     dependency_count=$(jq ".components[$index].depends_on | length" "$profile_file")
     for (( dependency_index=0; dependency_index<dependency_count; dependency_index++ )); do
@@ -167,49 +149,45 @@ validate_profile_links() {
       jq -e --arg id "$dependency_id" 'any(.components[]; .id == $id)' "$profile_file" >/dev/null \
         || die "Profile component $component_id depends on missing component: $dependency_id"
       dependency_enabled=$(jq -r --arg id "$dependency_id" '.components[] | select(.id == $id) | (.required or .default_enabled)' "$profile_file")
-      if [[ "$enabled" == 'true' && "$dependency_enabled" != 'true' ]]; then
-        die "Enabled component $component_id depends on disabled component: $dependency_id"
-      fi
+      [[ "$enabled" != 'true' || "$dependency_enabled" == 'true' ]] \
+        || die "Enabled component $component_id depends on disabled component: $dependency_id"
     done
   done
 }
 
 apply_plan() {
-  local plan=''
-  local target_root='/'
+  local plan='' target_root='/'
   local repo_root registry profile_id run_id profile_relative profile_file profile_dir
-
+  local plan_manifest_version plan_manifest_sha plan_commit current_manifest_version current_manifest_sha current_commit
   while (( $# > 0 )); do
     case "$1" in
-      --plan)
-        (( $# >= 2 )) || { usage; exit 64; }
-        plan=$2
-        shift 2
-        ;;
-      --root)
-        (( $# >= 2 )) || { usage; exit 64; }
-        target_root=$2
-        shift 2
-        ;;
-      *)
-        usage
-        exit 64
-        ;;
+      --plan) (( $# >= 2 )) || { usage; exit 64; }; plan=$2; shift 2 ;;
+      --root) (( $# >= 2 )) || { usage; exit 64; }; target_root=$2; shift 2 ;;
+      *) usage; exit 64 ;;
     esac
   done
-
   [[ -n "$plan" && -r "$plan" ]] || die 'A readable --plan file is required.'
   [[ "$target_root" == /* ]] || die 'Target root must be an absolute path.'
   [[ -d "$target_root" ]] || die "Target root does not exist: $target_root"
-
   require_jq
   repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
-  registry="$repo_root/manifest.json"
+  registry="$repo_root/public/manifest.json"
   [[ -r "$registry" ]] || die 'Runtime manifest is missing.'
-
   validate_plan "$plan"
+  plan_manifest_version=$(jq -r '.runtime.manifest_version' "$plan")
+  plan_manifest_sha=$(jq -r '.runtime.manifest_sha256' "$plan")
+  plan_commit=$(jq -r '.runtime.commit' "$plan")
+  current_manifest_version=$(jq -r '.manifest_version' "$registry")
+  current_manifest_sha=$(sha256_file "$registry")
+  current_commit=$(git -C "$repo_root" rev-parse HEAD 2>/dev/null) \
+    || die 'Runtime checkout is not a valid Git repository.'
+  [[ "$current_manifest_version" == "$plan_manifest_version" ]] \
+    || die "Manifest version mismatch: plan=$plan_manifest_version local=$current_manifest_version"
+  [[ "$current_manifest_sha" == "$plan_manifest_sha" ]] \
+    || die "Manifest SHA-256 mismatch: plan=$plan_manifest_sha local=$current_manifest_sha"
+  [[ "$current_commit" == "$plan_commit" ]] \
+    || die "Runtime commit mismatch: plan=$plan_commit local=$current_commit"
   validate_registry "$registry"
-
   profile_id=$(jq -r '.profile' "$plan")
   run_id=$(jq -r '.run_id' "$plan")
   profile_relative=$(jq -er --arg id "$profile_id" '.profiles[$id].manifest // empty' "$registry") \
@@ -218,50 +196,36 @@ apply_plan() {
   profile_dir=$(dirname "$profile_file")
   validate_profile "$profile_file" "$profile_id"
   validate_profile_links "$registry" "$profile_file"
-
-  log "run=$run_id profile=$profile_id version=$MSR_VERSION"
+  log "run=$run_id profile=$profile_id version=$MSR_VERSION manifest=$plan_manifest_version"
 
   local component_count component_index component_id config_relative config_file
   local component_relative component_file component_dir install_relative verify_relative install_file verify_file
   component_count=$(jq '[.components[] | select(.required or .default_enabled)] | length' "$profile_file")
-
   for (( component_index=0; component_index<component_count; component_index++ )); do
     component_id=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].id" "$profile_file")
     config_relative=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].config" "$profile_file")
     config_file=$(resolve_file "$profile_dir" "$config_relative")
-
     component_relative=$(jq -er --arg id "$component_id" '.components[$id].manifest // empty' "$registry") \
       || die "Component is not registered: $component_id"
     component_file=$(resolve_file "$repo_root" "$component_relative")
     component_dir=$(dirname "$component_file")
     validate_component "$component_file" "$component_id"
-
     install_relative=$(jq -r '.install' "$component_file")
     verify_relative=$(jq -r '.verify' "$component_file")
     install_file=$(resolve_file "$component_dir" "$install_relative")
     verify_file=$(resolve_file "$component_dir" "$verify_relative")
     [[ -x "$install_file" ]] || die "Installer is not executable: $install_relative"
     [[ -x "$verify_file" ]] || die "Verifier is not executable: $verify_relative"
-
     log "component=$component_id action=install"
     "$install_file" --config "$config_file" --root "$target_root"
     log "component=$component_id action=verify"
     "$verify_file" --config "$config_file" --root "$target_root"
   done
-
   log "run=$run_id status=complete components=$component_count"
 }
 
 case "${1:-}" in
-  apply)
-    shift
-    apply_plan "$@"
-    ;;
-  version)
-    printf '%s\n' "$MSR_VERSION"
-    ;;
-  *)
-    usage
-    exit 64
-    ;;
+  apply) shift; apply_plan "$@" ;;
+  version) printf '%s\n' "$MSR_VERSION" ;;
+  *) usage; exit 64 ;;
 esac
