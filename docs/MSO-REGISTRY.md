@@ -12,7 +12,7 @@ drei Werte in den Installationsplan:
 ```json
 {
   "runtime": {
-    "manifest_version": "2026.07.21.2",
+    "manifest_version": "2026.07.21.3",
     "manifest_sha256": "...64 hex characters...",
     "commit": "...40 hex characters..."
   }
@@ -62,8 +62,8 @@ die Serveranlage werden immer Version, SHA und Commit gemeinsam verwendet.
 
 ## MSO-Quelle
 
-`provisioning.profiles` liefert Images, Architekturen, Release-Kanäle, fest versionierte Bootstraps
-mit SHA-256 und Features. `lifecycle_mso_profiles()` im Toolhub liest ausschließlich diesen Abschnitt;
+`provisioning.profiles` liefert Images, Architekturen und Release-Kanäle mit fest versionierten Bootstraps
+und SHA-256. `lifecycle_mso_profiles()` im Toolhub liest ausschließlich diesen Abschnitt;
 die alte hardcodierte PHP-Matrix ist entfernt.
 
 ## Noch im Toolhub umzusetzen

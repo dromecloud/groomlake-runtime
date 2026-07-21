@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.21.2",
+  "manifest_version": "2026.07.21.3",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -28,7 +28,6 @@
         "image": "ubuntu-24.04",
         "label": "Ubuntu 24.04 LTS",
         "architectures": ["x86"],
-        "runtime_profile": "ironbird",
         "release_channels": {
           "stable": {
             "label": "Stable",
@@ -52,10 +51,6 @@
               "filename": "mso-bootstrap-v1.0.0.sh"
             }
           }
-        },
-        "features": {
-          "tailscale": { "available": true, "required": true, "label": "Tailscale" },
-          "docker": { "available": true, "required": false, "label": "Docker Engine + Compose" }
         }
       }
     }

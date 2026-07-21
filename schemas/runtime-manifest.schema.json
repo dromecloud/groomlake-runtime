@@ -110,20 +110,15 @@
     "provisioningProfile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["image", "label", "architectures", "runtime_profile", "release_channels", "features"],
+      "required": ["image", "label", "architectures", "release_channels"],
       "properties": {
         "image": { "type": "string", "minLength": 1 },
         "label": { "type": "string", "minLength": 1 },
         "architectures": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["x86", "arm"] } },
-        "runtime_profile": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "release_channels": {
           "type": "object",
           "minProperties": 1,
           "additionalProperties": { "$ref": "#/$defs/releaseChannel" }
-        },
-        "features": {
-          "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/feature" }
         }
       }
     },
@@ -146,16 +141,6 @@
             "filename": { "type": "string", "minLength": 1 }
           }
         }
-      }
-    },
-    "feature": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["available", "required", "label"],
-      "properties": {
-        "available": { "type": "boolean" },
-        "required": { "type": "boolean" },
-        "label": { "type": "string", "minLength": 1 }
       }
     }
   }

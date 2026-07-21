@@ -98,7 +98,6 @@ validate_registry() {
       (.value.label | type == "string" and length > 0) and
       (.value.architectures | type == "array" and length > 0) and
       (all(.value.architectures[]; . == "x86" or . == "arm")) and
-      (.value.runtime_profile | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
       (.value.release_channels | type == "object" and length > 0) and
       (all(.value.release_channels[];
         type == "object" and
@@ -110,13 +109,6 @@ validate_registry() {
         (.bootstrap.url | type == "string" and startswith("https://")) and
         (.bootstrap.sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
         (.bootstrap.filename | type == "string" and length > 0)
-      )) and
-      (.value.features | type == "object") and
-      (all(.value.features[];
-        type == "object" and
-        (.available | type == "boolean") and
-        (.required | type == "boolean") and
-        (.label | type == "string" and length > 0)
       ))
     )) and
     (.components | type == "object" and length > 0) and
