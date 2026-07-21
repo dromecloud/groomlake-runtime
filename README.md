@@ -1,6 +1,6 @@
 # Groomlake Runtime
 
-Groomlake Runtime enthält den Autoloader, wiederverwendbare Serverkomponenten, Zonenprofile und deren
+Groomlake Runtime enthält die Mission Systems Runtime (MSR), wiederverwendbare Serverkomponenten, Zonenprofile und deren
 Validierung. Zielserver laden ausschließlich dieses Repository und checken immer einen von Mission
 Systems Officer vorgegebenen Commit aus. Es gibt kein unkontrolliertes `git pull` auf einen beweglichen
 Branch.
@@ -9,8 +9,8 @@ Branch.
 
 ```text
 groomlake-runtime/
-├── bin/                         ausführbare Runtime-Einstiegspunkte
-├── lib/                         gemeinsame Funktionen des Autoloaders
+├── bin/                         ausführbarer MSR-Einstiegspunkt
+├── lib/                         gemeinsame Funktionen der MSR
 ├── components/                  profilübergreifend installierbare Bausteine
 ├── profiles/                    Zusammensetzung und Konfiguration pro Zone
 │   ├── ironbird/
@@ -50,7 +50,7 @@ groomlake-runtime/
 werden erst mit einem funktionalen Verbraucher ergänzt:
 
 1. Schema für Installationsplan, Profil und Komponente festlegen.
-2. Minimalen Autoloader bauen.
+2. Minimalen MSR-Einstiegspunkt `bin/msr` bauen.
 3. `health`, `motd` und `blackbox-agent` als erste gemeinsame Komponenten umsetzen.
 4. Iron-Bird-Profil vollständig durchlaufen lassen.
 5. Erst danach weitere Komponenten und Profile aktivieren.
