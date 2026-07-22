@@ -68,3 +68,26 @@ Keine neue Runtime-Komponente ohne:
 2. Profil-/Komponentenvertrag;
 3. Smoke- oder Vertragsprüfung;
 4. Dokumentation dieses Ablaufs und der offenen Punkte.
+
+## 2026-07-22 — Runtime-Paket als nächster Provisioning-Schritt
+
+### Entschieden
+
+- Der Zielserver soll nicht das vollständige Runtime-Git klonen.
+- Git bleibt Entwicklungsquelle; Codehangar veröffentlicht minimale, versionierte Pakete.
+- Ein Paket enthält nur MSR-Kern, Profil, ausgewählte Komponenten, Schemas, Manifest und
+  `release.json`.
+- Ein einmaliges Ticket bleibt die Freigabeschranke vor dem Paketabruf. Die konkrete Ticket-/Broker-
+  Implementierung ist noch offen und wird vor einem neuen Bootstrap-Release separat geprüft.
+
+### Implementiert
+
+- `scripts/build-release.sh` baut profilbezogene Allowlist-Pakete.
+- MSR akzeptiert neben einem Git-Checkout auch ein geprüftes `release.json`.
+- Bundle-Smoke-Test stellt sicher, dass MOTD ohne `.git` installiert und verifiziert wird.
+
+### Noch nicht live
+
+- Provisioning-Broker-Endpunkt, Ticket-Tabelle und einmalige Token-Nutzung.
+- Neuer Bootstrap mit Artefakt-Download statt Git-Clone.
+- Veröffentlichung eines Runtime-Pakets auf Codehangar.
