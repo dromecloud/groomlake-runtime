@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.4",
+  "manifest_version": "2026.07.22.5",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -35,11 +35,11 @@
             "available": false,
             "note": "Noch nicht funktional freigegeben.",
             "bootstrap": {
-              "version": "v1.0.2",
-              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.2.sh",
-              "sha256": "c78a168c54789c250e6d2bf7ee8510754e305fd5541ccea260090b6ee8b77211",
-              "filename": "mso-bootstrap-v1.0.2.sh",
-              "runtime_commit": "e0989bc1ef7543f9a387df3b2d4741d2da3ae6c7"
+              "version": "v1.0.3",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.3.sh",
+              "sha256": "bdfdc275d944cbd56fd93e6c4c8615e01ba8be66564aca7f235dfbf054678575",
+              "filename": "mso-bootstrap-v1.0.3.sh",
+              "runtime_commit": "5116591830bb5647621a3fd42b59565ddc2327bf"
             }
           },
           "dev": {
@@ -47,11 +47,11 @@
             "available": true,
             "note": "Nur fuer den kontrollierten Frischserver-Test.",
             "bootstrap": {
-              "version": "v1.0.2",
-              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.2.sh",
-              "sha256": "c78a168c54789c250e6d2bf7ee8510754e305fd5541ccea260090b6ee8b77211",
-              "filename": "mso-bootstrap-v1.0.2.sh",
-              "runtime_commit": "e0989bc1ef7543f9a387df3b2d4741d2da3ae6c7"
+              "version": "v1.0.3",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.3.sh",
+              "sha256": "bdfdc275d944cbd56fd93e6c4c8615e01ba8be66564aca7f235dfbf054678575",
+              "filename": "mso-bootstrap-v1.0.3.sh",
+              "runtime_commit": "5116591830bb5647621a3fd42b59565ddc2327bf"
             }
           }
         }
