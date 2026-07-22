@@ -3,7 +3,7 @@ GROOMLAKE RUNTIME – COMMIT MARKER
 
 Die Datei commit.txt enthält absichtlich genau eine Zeile:
 
-  0b629bdc1280e7725111ca56eaceee121836406e
+  d43ea0c1977c56794214388a440fa020ab833bd2
 
 Diese 40-stellige kleingeschriebene Hex-Zeichenfolge ist die Git-Commit-ID
 (SHA-1) des geprüften Runtime-Stands, auf den ATIS und MSO verweisen.
