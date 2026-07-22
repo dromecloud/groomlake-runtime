@@ -27,10 +27,11 @@ Komponenten. Der Server liest nach dem Git-Checkout dieselbe Datei lokal.
 Die Felder haben unterschiedliche Aufgaben:
 
 - `schema_version` beschreibt das Format der JSON-Datei.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt, aktuell `2026.07.22.1`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt, aktuell `2026.07.22.2`.
 - `provisioning.profiles` ist die einzige Quelle für MSO-Image-, Architektur- und Release-Auswahl.
   Stable/Development sind Freigabestufen derselben fest versionierten Bootstrap-Linie; optionale
-  Tailscale-/Docker-Schalter und eine Profil-Bootstrap-Kopplung gehören nicht in diesen Vertrag.
+  Tailscale-/Docker-Schalter und eine Profil-Bootstrap-Kopplung gehören nicht in diesen Vertrag. Jeder
+  Bootstrap nennt zusätzlich den exakt ausgecheckten Runtime-Commit.
 - Der Git-Commit identifies den vollständigen Runtime-Stand.
 - Die SHA-256 wird von MSO über die geladenen Manifest-Bytes berechnet und im Installationsplan
   mitgegeben.

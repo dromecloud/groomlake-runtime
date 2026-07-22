@@ -108,7 +108,8 @@ validate_registry() {
         (.bootstrap.version | type == "string" and length > 0) and
         (.bootstrap.url | type == "string" and startswith("https://")) and
         (.bootstrap.sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
-        (.bootstrap.filename | type == "string" and length > 0)
+        (.bootstrap.filename | type == "string" and length > 0) and
+        (.bootstrap.runtime_commit | type == "string" and test("^[0-9a-f]{40}$"))
       ))
     )) and
     (.components | type == "object" and length > 0) and

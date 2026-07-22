@@ -62,8 +62,8 @@ die Serveranlage werden immer Version, SHA und Commit gemeinsam verwendet.
 
 ## MSO-Quelle
 
-`provisioning.profiles` liefert Images, Architekturen und Release-Kanäle mit fest versionierten Bootstraps
-und SHA-256. `lifecycle_mso_profiles()` im Toolhub liest ausschließlich diesen Abschnitt;
+`provisioning.profiles` liefert Images, Architekturen und Release-Kanäle mit fest versionierten Bootstraps,
+SHA-256 und Runtime-Commit. `lifecycle_mso_profiles()` im Toolhub liest ausschließlich diesen Abschnitt;
 die alte hardcodierte PHP-Matrix ist entfernt.
 
 ## Noch im Toolhub umzusetzen
