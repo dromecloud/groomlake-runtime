@@ -1,8 +1,8 @@
 # Groomlake Runtime
 
 Groomlake Runtime enthält die Mission Systems Runtime (MSR), wiederverwendbare Serverkomponenten,
-Zonenprofile und deren Validierung. Git ist die Entwicklungsquelle. Zielserver erhalten künftig nur
-versionierte, per SHA-256 geprüfte Runtime-Pakete mit den für den Auftrag erlaubten Ordnern.
+Zonenprofile und deren Validierung. Zielserver laden dieses Repository per Git und checken den von MSO
+vorgegebenen Commit aus.
 
 ## Struktur
 
@@ -54,24 +54,17 @@ ist nicht Teil des Git-Repositories und wird nur als geprüfter 40-stelliger Com
 Die öffentliche Datei enthält keine Geheimnisse. Tailscale-Keys, Hetzner-Tokens, SSH-Private-Keys und
 produktive Konfigurationen gehören nicht in dieses Repository.
 
-## Runtime-Paket statt Git-Checkout
-
-`scripts/build-release.sh --profile ironbird --output /absolute/path/release.tar.gz` baut ein
-minimales Paket aus MSR-Kern, Profil, ausgewählten Komponenten, Schemas und `release.json`. Das Paket
-enthält weder `.git` noch Tests, Dokumentation oder fremde Profile. MSR kann aus diesem Paket ohne
-Git-Metadaten laufen; `release.json` trägt den festgepinnten Entwicklungs-Commit als Herkunftsnachweis.
-
 ## Ausführungsvertrag
 
-Cloud-init erzeugt den serverindividuellen Installationsplan und startet MSR einmalig:
+Cloud-init erzeugt den serverindividuellen Installationsplan, checkt den exakten Commit aus und
+startet MSR einmalig:
 
 ```bash
 /opt/groomlake-runtime/bin/msr apply \
   --plan /etc/groomlake/install-plan.json
 ```
 
-MSR liest danach `manifest.json`, prüft Manifest-Version, SHA-256 und den Commit aus Git oder
-`release.json` und führt nur
+MSR liest danach `manifest.json`, prüft Manifest-Version, SHA-256 und Git-Commit und führt nur
 die im Profil und Manifest registrierten Komponenten aus.
 
 ## Erster vertikaler Schnitt
@@ -96,6 +89,5 @@ scripts/check.sh
 
 - Eine installierbare Fähigkeit liegt genau einmal unter `components/`.
 - Profile kopieren keine Installer, sondern wählen Komponenten und liefern ihre Konfiguration.
-- Release-Pakete übertragen nur die vom Profil freigegebenen Ordner; freie Pfade im Init sind verboten.
 - Laufzeitberichte und Rohlogs gehören nicht ins Git.
 - Geheimnisse und produktive Zugangsdaten gehören niemals in dieses Repository.
