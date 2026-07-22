@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.2",
+  "manifest_version": "2026.07.22.3",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -65,6 +65,15 @@
         "description": "Installiert und prüft die profilbezogene Begrüßungsanzeige.",
         "category": "system",
         "order": 10
+      }
+    },
+    "test-tool": {
+      "manifest": "components/test-tool/component.json",
+      "display": {
+        "label": "Test Tool",
+        "description": "Temporärer Manifest-Eintrag zur Prüfung der dynamischen MSO-Anzeige.",
+        "category": "test",
+        "order": 999
       }
     }
   }

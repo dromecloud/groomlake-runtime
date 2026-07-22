@@ -12,7 +12,7 @@ drei Werte in den Installationsplan:
 ```json
 {
   "runtime": {
-    "manifest_version": "2026.07.22.1",
+    "manifest_version": "2026.07.22.3",
     "manifest_sha256": "...64 hex characters...",
     "commit": "...40 hex characters..."
   }
