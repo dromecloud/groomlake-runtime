@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.11",
+  "manifest_version": "2026.07.22.12",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -15,7 +15,7 @@
         "label": "Iron Bird",
         "description": "Integrations- und Testprofil für neue Groomlake-Komponenten.",
         "order": 10,
-        "motd_preview": " ___  ____   ___  _   _   ____  ___ ____  ____\n|_ *||  \\_ \\ / \\_ \\| \\ | | | \\_\\_ )|* _|  _ \\|  _ \\\n | | | |*) | | | |  \\| | |  \\_ \\ | || |*) | | | |\n | | |  _ <| |*| | |\\  | | |*) || ||  _ <| |_| |\n|***||_\\| \\_\\\\***/|*| \\_| |\\_\\_\\_\\_/|\\_\\_\\_|*| \\_\\____/\n\nIRON BIRD\nGroomlake integration and test profile\nManaged by Mission Systems Runtime"
+        "motd_preview": "···································································\n:    ██╗██████╗  ██████╗ ███╗   ██╗██████╗ ██╗██████╗ ██████╗     :\n:    ██║██╔══██╗██╔═══██╗████╗  ██║██╔══██╗██║██╔══██╗██╔══██╗    :\n:    ██║██████╔╝██║   ██║██╔██╗ ██║██████╔╝██║██████╔╝██║  ██║    :\n:    ██║██╔══██╗██║   ██║██║╚██╗██║██╔══██╗██║██╔══██╗██║  ██║    :\n:    ██║██║  ██║╚██████╔╝██║ ╚████║██████╔╝██║██║  ██║██████╔╝    :\n:    ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚═╝╚═╝  ╚═╝╚═════╝     :\n···································································\n\nIRON BIRD\nGroomlake integration and test profile\nManaged by Mission Systems Runtime"
       },
       "compatibility": {
         "architectures": ["x86"],
