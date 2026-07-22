@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.10",
+  "manifest_version": "2026.07.22.11",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -21,7 +21,7 @@
         "architectures": ["x86"],
         "images": ["ubuntu-24.04"]
       },
-      "components": ["motd"]
+      "components": ["motd", "health"]
     }
   },
   "provisioning": {
@@ -67,6 +67,15 @@
         "description": "Installiert und prüft die profilbezogene Begrüßungsanzeige.",
         "category": "system",
         "order": 10
+      }
+    },
+    "health": {
+      "manifest": "components/health/component.json",
+      "display": {
+        "label": "ACARS Health Reporter",
+        "description": "Meldet Bootstrap-, Runtime- und Integritaetsstatus strukturiert an den Tower.",
+        "category": "observability",
+        "order": 20
       }
     },
     "test-tool": {

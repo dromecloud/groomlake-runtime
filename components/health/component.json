@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "id": "health",
+  "install": "install.sh",
+  "verify": "verify.sh"
+}

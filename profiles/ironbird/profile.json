@@ -8,6 +8,13 @@
       "required": true,
       "default_enabled": true,
       "depends_on": []
+    },
+    {
+      "id": "health",
+      "config": "config/health.json",
+      "required": true,
+      "default_enabled": true,
+      "depends_on": []
     }
   ],
   "sequences": []
