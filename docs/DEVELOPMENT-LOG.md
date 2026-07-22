@@ -68,3 +68,18 @@ Keine neue Runtime-Komponente ohne:
 2. Profil-/Komponentenvertrag;
 3. Smoke- oder Vertragsprüfung;
 4. Dokumentation dieses Ablaufs und der offenen Punkte.
+
+## 2026-07-22 — Git-Clone mit kurzlebigem Broker-Zugriff
+
+Die Paket-Variante wurde als unnötiger Zwischenpfad zurückgenommen. Für den ersten funktionalen
+MOTD-/Frischserver-Test bleibt das Runtime-Git die vollständige, aber geheimnisfreie Quelle. Der
+Bootstrap klont ausschließlich den vom Broker freigegebenen Repository-Commit und MSR führt weiterhin
+nur die Profil-Komponenten aus.
+
+Der Runtime-Katalog trägt jetzt pro Profil die freigegebenen Komponenten. Toolhub erzeugt vor dem
+Hetzner-Aufruf ein einmaliges Ticket; der Provisioning-Broker tauscht es gegen einen kurzlebigen,
+read-only GitHub-App-Installationstoken. Der Token wird nie in Init oder Git gespeichert und nach dem
+Checkout gelöscht.
+
+Noch offen vor dem neuen Frischserver-Test: GitHub-App/Installation im server-only Config hinterlegen,
+Ticket-Migration anwenden, Broker-Smoke-Test ausführen und Bootstrap v1.0.3 nach Codehangar deployen.

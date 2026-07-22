@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.3",
+  "manifest_version": "2026.07.22.4",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -19,7 +19,8 @@
       "compatibility": {
         "architectures": ["x86"],
         "images": ["ubuntu-24.04"]
-      }
+      },
+      "components": ["motd"]
     }
   },
   "provisioning": {
