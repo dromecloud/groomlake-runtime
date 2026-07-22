@@ -1,0 +1,16 @@
+[Unit]
+Description=Groomlake ACARS health report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/groomlake-acars-health-report
+User=root
+Group=root
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mission-systems-officer
+

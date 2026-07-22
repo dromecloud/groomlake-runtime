@@ -8,6 +8,9 @@ bash -n \
   bin/msr \
   components/motd/install.sh \
   components/motd/verify.sh \
+  components/health/install.sh \
+  components/health/verify.sh \
+  components/health/report.sh \
   scripts/check.sh \
   tests/smoke/msr-motd.sh
 sh -n components/motd/render.sh

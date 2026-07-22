@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "reporter": "acars",
+  "interval_seconds": 60
+}

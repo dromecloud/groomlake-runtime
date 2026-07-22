@@ -28,11 +28,18 @@ write_plan() {
 }
 
 write_plan ironbird "$plan"
+export MSO_HEALTH_URL='https://toolhub.horizon-hub.one/assets/groomlake-health.php'
+export MSO_HEALTH_TOKEN='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+export MSO_SERVER_NAME='local-motd-smoke'
+export MSO_PROFILE='ironbird'
+export MSO_BOOTSTRAP_VERSION='smoke'
 "$repo_root/bin/msr" apply --plan "$plan" --root "$target_root"
 "$repo_root/bin/msr" apply --plan "$plan" --root "$target_root"
 
 cmp -s "$repo_root/profiles/ironbird/config/motd.txt" "$target_root/etc/groomlake/motd.txt"
 [[ -x "$target_root/etc/update-motd.d/10-groomlake-profile" ]]
+[[ -x "$target_root/usr/local/libexec/groomlake-acars-health-report" ]]
+[[ -f "$target_root/etc/groomlake/health.env" ]]
 rendered=$(GROOMLAKE_ETC_ROOT="$target_root/etc" "$target_root/etc/update-motd.d/10-groomlake-profile")
 expected=$(cat "$repo_root/profiles/ironbird/config/motd.txt")
 [[ "$rendered" == "$expected" ]]
