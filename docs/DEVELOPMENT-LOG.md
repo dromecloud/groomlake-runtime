@@ -81,6 +81,10 @@ Hetzner-Aufruf ein einmaliges Ticket; der Provisioning-Broker tauscht es gegen e
 read-only GitHub-App-Installationstoken. Der Token wird nie in Init oder Git gespeichert und nach dem
 Checkout gelöscht.
 
+`public/commit.txt` markiert den geprüften Runtime-Commit für ATIS. Der Inhalt muss bei jeder neuen
+freigegebenen Runtime-Manifest-Version auf genau den Commit zeigen, dessen Manifest ATIS ausliefert;
+dadurch kann Toolhub den Commit im Provisioning-Ticket unverändert an den Bootstrap weitergeben.
+
 GitHub-App/Installation ist im server-only Config hinterlegt, die Ticket-Migration ist angewendet,
 der Broker-Smoke-Test ist PASS und Bootstrap v1.0.3 ist veröffentlicht. Offen bleibt nur der
 Plesk-Pull dieses Runtime-Branches und danach der neue Frischserver-Test.
