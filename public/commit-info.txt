@@ -1,0 +1,50 @@
+GROOMLAKE RUNTIME – COMMIT MARKER
+=================================
+
+Die Datei commit.txt enthält absichtlich genau eine Zeile:
+
+  0b629bdc1280e7725111ca56eaceee121836406e
+
+Diese 40-stellige kleingeschriebene Hex-Zeichenfolge ist die Git-Commit-ID
+(SHA-1) des geprüften Runtime-Stands, auf den ATIS und MSO verweisen.
+
+Was die Zahl bedeutet
+---------------------
+
+- Sie ist kein fortlaufender Versionszähler.
+- Sie ist keine Bootstrap-Version (z. B. v1.0.6).
+- Sie ist nicht die Manifest-Version (z. B. 2026.07.22.9).
+- Sie ist nicht die SHA-256-Prüfsumme des Manifests oder Bootstraps.
+- Sie ist der eindeutige Fingerabdruck eines konkreten Git-Commit-Objekts.
+- Aus den Zeichen lassen sich weder Datum noch Inhalt lesbar ableiten.
+
+Verwendung im Ablauf
+--------------------
+
+1. ATIS liest commit.txt und setzt daraus den Header X-Groomlake-Commit.
+2. MSO übernimmt diese Commit-ID in das Provisioning-Ticket und den
+   Installationsplan.
+3. Cloud-init erhält den Plan und erlaubt dem kurzlebigen GitHub-Zugriff nur
+   diesen exakten Commit auszuchecken.
+4. MSR prüft lokal, dass der ausgecheckte Git-Stand mit dem Plan übereinstimmt.
+5. Bei einer Abweichung wird fail-closed abgebrochen; es wird nichts installiert.
+
+Prüfung per Git
+---------------
+
+  git rev-parse HEAD
+
+Der ausgegebene Wert muss bytegenau mit commit.txt und der Commit-ID im
+Installationsplan übereinstimmen. Ein anderer Commit kann völlig andere
+Profile oder Komponenten enthalten, selbst wenn die Versionsnummer gleich
+bleibt.
+
+Sicherheits- und Pflegehinweis
+------------------------------
+
+Die Commit-ID ist öffentlich und kein Geheimnis. Sie verhindert keine
+Lesbarkeit des öffentlichen Manifests, verhindert aber, dass ein Server
+unbemerkt auf einen anderen Runtime-Stand ausweicht. Bei jedem freigegebenen
+Runtime-Stand wird commit.txt auf genau den geprüften Commit gesetzt. Die
+Datei darf nicht mit Kommentaren oder weiteren Zeilen erweitert werden, weil
+der ATIS-Handler sie maschinenlesbar validiert.

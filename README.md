@@ -48,8 +48,11 @@ Repository-Root und akzeptiert weder Pfade noch Befehle. Der `.git`-Ordner wird 
 erreichbar gemacht.
 
 Der Handler liefert nur bei `GET`/`HEAD` JSON, validiert die Mindeststruktur und setzt SHA-256,
-ETag sowie Manifest-Version als Header. `public/commit.txt` kann vom Deployment erzeugt werden,
-ist nicht Teil des Git-Repositories und wird nur als geprüfter 40-stelliger Commit-Header verwendet.
+ETag sowie Manifest-Version als Header. `public/commit.txt` enthält ausschließlich die geprüfte
+40-stellige Git-Commit-ID. Der Handler validiert diese Datei maschinenlesbar und verwendet sie als
+`X-Groomlake-Commit`-Header. Eine Erklärung der ID, ihrer Abgrenzung zu Manifest-/Bootstrap-Versionen
+und ihrer Verwendung steht in `public/commit-info.txt`. `commit.txt` darf deshalb nicht um Kommentare
+oder weitere Zeilen ergänzt werden.
 
 Die öffentliche Datei enthält keine Geheimnisse. Tailscale-Keys, Hetzner-Tokens, SSH-Private-Keys und
 produktive Konfigurationen gehören nicht in dieses Repository.
