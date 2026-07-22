@@ -90,6 +90,14 @@ validate_registry() {
       (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$")))
     )) and
     (.provisioning | type == "object") and
+    (.provisioning.bootstrap_functions | type == "array" and length > 0) and
+    (all(.provisioning.bootstrap_functions[];
+      type == "object" and
+      (.id | type == "string" and test("^[a-z0-9][a-z0-9-]*$")) and
+      (.label | type == "string" and length > 0) and
+      (.description | type == "string" and length > 0) and
+      (.phase | type == "string" and length > 0)
+    )) and
     (.provisioning.profiles | type == "object" and length > 0) and
     (all(.provisioning.profiles | to_entries[];
       (.key | test("^[a-z0-9][a-z0-9.-]*$")) and

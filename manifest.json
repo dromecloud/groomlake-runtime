@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.22.12",
+  "manifest_version": "2026.07.23.1",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -25,6 +25,56 @@
     }
   },
   "provisioning": {
+    "bootstrap_functions": [
+      {
+        "id": "integrity",
+        "label": "Integritätsprüfung",
+        "description": "Prüft Download, SHA-256-Prüfsumme und Bash-Syntax des fest versionierten Bootstrap-Artefakts.",
+        "phase": "vor dem Start"
+      },
+      {
+        "id": "ticket",
+        "label": "Provisioning-Ticket",
+        "description": "Löst beim Broker ein einmaliges, kurzlebiges Provisioning-Ticket ein.",
+        "phase": "Einrichtung"
+      },
+      {
+        "id": "base-tools",
+        "label": "Basiswerkzeuge",
+        "description": "Stellt die für den Runtime-Checkout benötigten Werkzeuge wie CA-Zertifikate, curl, Git und jq bereit.",
+        "phase": "Einrichtung"
+      },
+      {
+        "id": "runtime-checkout",
+        "label": "Runtime-Checkout",
+        "description": "Checkt die Groomlake Runtime exakt auf den im Installationsplan festgelegten Git-Commit aus.",
+        "phase": "Einrichtung"
+      },
+      {
+        "id": "manifest-integrity",
+        "label": "Manifest-Abgleich",
+        "description": "Vergleicht Manifest-Version, Manifest-SHA-256 und Runtime-Commit mit dem Installationsplan; bei Abweichung wird abgebrochen.",
+        "phase": "Sicherheitsprüfung"
+      },
+      {
+        "id": "profile-dispatch",
+        "label": "Profil-Ausführung",
+        "description": "Startet den Mission Systems Runtime-Entrypoint mit dem serverseitig freigegebenen Profil und dessen Komponenten.",
+        "phase": "Ausführung"
+      },
+      {
+        "id": "status",
+        "label": "Status schreiben",
+        "description": "Schreibt Installationsplan, Bootstrap-Umgebung und Boot-Status für ACARS und Tower.",
+        "phase": "Abschluss"
+      },
+      {
+        "id": "cleanup",
+        "label": "Einmalige Aufräumung",
+        "description": "Entfernt das einmalige Bootstrap-Artefakt und bereinigt sensible Cloud-init-Reste nach erfolgreichem Lauf.",
+        "phase": "Abschluss"
+      }
+    ],
     "profiles": {
       "ubuntu-24.04": {
         "image": "ubuntu-24.04",
