@@ -11,7 +11,7 @@ fest, warum der Code so aufgebaut ist und welche Punkte noch offen sind.
 - `groomlake-runtime` bleibt ein eigenständiges Git-Repository.
 - `manifest.json` ist die gemeinsame Registry für MSO und MSR; sie bleibt die Root-Quelle.
 - `schema_version` beschreibt das JSON-Format.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.22.3`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt; aktuell `2026.07.22.5`.
 - `provisioning.profiles` ist jetzt die verbindliche MSO-Quelle für Images, Architekturen, Release-Kanäle
   und fest versionierte Bootstrap-Dateien samt SHA-256. Jeder Bootstrap ist zusätzlich auf einen
   konkreten Runtime-Commit gepinnt. Tailscale, Docker und eine Profil-Bootstrap-Kopplung sind daraus entfernt.
@@ -81,5 +81,15 @@ Hetzner-Aufruf ein einmaliges Ticket; der Provisioning-Broker tauscht es gegen e
 read-only GitHub-App-Installationstoken. Der Token wird nie in Init oder Git gespeichert und nach dem
 Checkout gelöscht.
 
-Noch offen vor dem neuen Frischserver-Test: GitHub-App/Installation im server-only Config hinterlegen,
-Ticket-Migration anwenden, Broker-Smoke-Test ausführen und Bootstrap v1.0.3 nach Codehangar deployen.
+GitHub-App/Installation ist im server-only Config hinterlegt, die Ticket-Migration ist angewendet,
+der Broker-Smoke-Test ist PASS und Bootstrap v1.0.3 ist veröffentlicht. Offen bleibt nur der
+Plesk-Pull dieses Runtime-Branches und danach der neue Frischserver-Test.
+
+## 2026-07-22 — ATIS-Deployment-Drift erkannt und sicher abgefangen
+
+Der MSO-Create wurde fail-closed mit „Runtime-Profil enthält keine freigegebenen Komponenten“
+abgebrochen. Ursache war kein Token- oder GitHub-Fehler, sondern ein veralteter Plesk-Checkout:
+ATIS lieferte noch Manifest `2026.07.22.3`, obwohl Git bereits `2026.07.22.5` mit
+`profiles.ironbird.components = ["motd"]` enthielt. Die Runtime-Korrektur wurde per Fast-Forward
+nach `main` übernommen. Vor jedem kostenpflichtigen Server wird deshalb zuerst ATIS-Version und
+Profil-Komponenten geprüft; erst danach folgt der Toolhub-Deploy und der Frischserver-Test.
