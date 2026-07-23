@@ -27,7 +27,7 @@ Komponenten. Der Server liest nach dem Git-Checkout dieselbe Datei lokal.
 Die Felder haben unterschiedliche Aufgaben:
 
 - `schema_version` beschreibt das Format der JSON-Datei.
-- `manifest_version` beschreibt den konkreten fachlichen Inhalt, aktuell `2026.07.23.1`.
+- `manifest_version` beschreibt den konkreten fachlichen Inhalt, aktuell `2026.07.23.2`.
 - `provisioning.profiles` ist die einzige Quelle für MSO-Image-, Architektur- und Release-Auswahl.
   Stable/Development sind Freigabestufen derselben fest versionierten Bootstrap-Linie; optionale
   Tailscale-/Docker-Schalter und eine Profil-Bootstrap-Kopplung gehören nicht in diesen Vertrag. Jeder
@@ -35,6 +35,10 @@ Die Felder haben unterschiedliche Aufgaben:
 - `provisioning.bootstrap_functions` beschreibt die gemeinsamen Basisfunktionen des fest versionierten
   Bootstrap-Artefakts. Diese Liste ist von den profilspezifischen `components` getrennt und wird von MSO
   im Release-Detail als eigener Block angezeigt.
+- `profiles.<id>.components` enthält die für das Profil freigegebenen Komponenten. Pflichtkomponenten
+  werden von MSO automatisch ausgewählt und können nicht abgewählt werden. Optionale Komponenten stehen
+  nur dann zur Auswahl, wenn sie zusätzlich in `optional_components` des Profils stehen. Der Server
+  akzeptiert ausschließlich diese IDs; freie Skripte, Pfade oder Shell-Befehle sind ausgeschlossen.
 - Der Git-Commit identifies den vollständigen Runtime-Stand.
 - Die SHA-256 wird von MSO über die geladenen Manifest-Bytes berechnet und im Installationsplan
   mitgegeben.
@@ -78,10 +82,13 @@ die im Profil und Manifest registrierten Komponenten aus.
 ```text
 Installationsplan
 └── Profil ironbird
-    └── Komponente motd
-        ├── installiert /etc/groomlake/motd.txt
-        ├── installiert /etc/update-motd.d/10-groomlake-profile
-        └── prüft Datei und gerenderte Ausgabe
+    ├── Komponente motd
+    │   ├── installiert /etc/groomlake/motd.txt
+    │   ├── installiert /etc/update-motd.d/10-groomlake-profile
+    │   └── prüft Datei und gerenderte Ausgabe
+    └── Komponente health
+        ├── installiert den ACARS-Health-Reporter
+        └── prüft Reporter, Konfiguration und Timer
 ```
 
 Der lokale Smoke-Test schreibt ausschließlich in ein temporäres Zielverzeichnis. Er führt MSR

@@ -69,6 +69,24 @@ Keine neue Runtime-Komponente ohne:
 3. Smoke- oder Vertragsprüfung;
 4. Dokumentation dieses Ablaufs und der offenen Punkte.
 
+## 2026-07-23 — Komponentenvertrag und Deadman-Zielregel
+
+MSO übergibt jetzt neben Profil und Integritätsdaten auch eine serverseitig
+geprüfte Komponentenliste. Pflichtkomponenten kommen aus
+profiles.<id>.components und werden immer ergänzt; optionale Komponenten
+dürfen nur aus optional_components desselben Profils stammen. MSR validiert
+die IDs, Pflichtanteile und depends_on-Beziehungen und führt anschließend
+ausschließlich die ausgewählten registrierten Komponenten aus. Der lokale
+Smoke-Test deckt MOTD und Health, Wiederholbarkeit sowie einen Manifestfehler
+ab. Der Frischserver-End-to-End-Nachweis steht noch aus.
+
+Deadman Control verwendet keine 24-Stunden-Karenz mehr. Die Konfiguration
+unterstützt eine kurze Grace-Phase (Standard 120 Sekunden): Lease abgelaufen
+→ Graceful Shutdown → bei weiter laufendem Server Hetzner-Poweroff
+→ nach bestätigtem off Server löschen. Volumes bleiben unberührt. Der Dienst
+bleibt standardmäßig deaktiviert, bis ein kontrollierter Dry-Run und ein
+produktiver Test ausdrücklich freigegeben sind.
+
 ## 2026-07-22 — Git-Clone mit kurzlebigem Broker-Zugriff
 
 Die Paket-Variante wurde als unnötiger Zwischenpfad zurückgenommen. Für den ersten funktionalen

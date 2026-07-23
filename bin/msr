@@ -58,7 +58,10 @@ validate_plan() {
     (.runtime.manifest_sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
     (.runtime.commit | type == "string" and test("^[0-9a-f]{40}$")) and
     ((.runtime | keys) - ["commit", "manifest_sha256", "manifest_version"] | length == 0) and
-    ((keys - ["profile", "run_id", "runtime", "schema_version"]) | length == 0)
+    (.components | type == "array" and length > 0) and
+    ((.components | unique | length) == (.components | length)) and
+    (all(.components[]; type == "string" and test("^[a-z0-9][a-z0-9-]{0,63}$"))) and
+    ((keys - ["components", "profile", "run_id", "runtime", "schema_version"]) | length == 0)
   ' "$plan" >/dev/null || die 'Installation plan does not match schema version 2.'
 }
 
@@ -87,7 +90,13 @@ validate_registry() {
       (.value.compatibility.architectures | type == "array" and length > 0) and
       (all(.value.compatibility.architectures[]; . == "x86" or . == "arm")) and
       (.value.compatibility.images | type == "array" and length > 0) and
-      (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$")))
+      (all(.value.compatibility.images[]; type == "string" and test("^[a-z0-9][a-z0-9.-]*$"))) and
+      (.value.components | type == "array" and length > 0) and
+      ((.value.components | unique | length) == (.value.components | length)) and
+      (all(.value.components[]; type == "string" and test("^[a-z0-9][a-z0-9-]*$"))) and
+      ((.value.optional_components // []) | type == "array") and
+      (((.value.optional_components // []) | unique | length) == ((.value.optional_components // []) | length)) and
+      (all((.value.optional_components // [])[]; type == "string" and test("^[a-z0-9][a-z0-9-]*$")))
     )) and
     (.provisioning | type == "object") and
     (.provisioning.bootstrap_functions | type == "array" and length > 0) and
@@ -189,7 +198,7 @@ validate_profile_links() {
 apply_plan() {
   local plan='' target_root='/'
   local repo_root registry profile_id run_id profile_relative profile_file profile_dir
-  local plan_manifest_version plan_manifest_sha plan_commit current_manifest_version current_manifest_sha current_commit
+  local plan_manifest_version plan_manifest_sha plan_commit current_manifest_version current_manifest_sha current_commit selected_components
   while (( $# > 0 )); do
     case "$1" in
       --plan) (( $# >= 2 )) || { usage; exit 64; }; plan=$2; shift 2 ;;
@@ -227,14 +236,25 @@ apply_plan() {
   profile_dir=$(dirname "$profile_file")
   validate_profile "$profile_file" "$profile_id"
   validate_profile_links "$registry" "$profile_file"
+  selected_components=$(jq -c '.components' "$plan")
+  # The plan may select only components declared by this profile. Required
+  # components can never be omitted; dependencies must be selected as well.
+  jq -e --argjson selected "$selected_components" '
+    . as $profile |
+    all($profile.components[] | select(.required == true);
+      .id as $id | ($selected | index($id)) != null) and
+    all($selected[]; . as $id | any($profile.components[]; .id == $id)) and
+    all($profile.components[] | select(.id as $id | ($selected | index($id)) != null);
+      all(.depends_on[]; . as $dependency | ($selected | index($dependency)) != null))
+  ' "$profile_file" >/dev/null || die 'Installation plan violates profile component or dependency rules.'
   log "run=$run_id profile=$profile_id version=$MSR_VERSION manifest=$plan_manifest_version"
 
   local component_count component_index component_id config_relative config_file
   local component_relative component_file component_dir install_relative verify_relative install_file verify_file
-  component_count=$(jq '[.components[] | select(.required or .default_enabled)] | length' "$profile_file")
+  component_count=$(jq --argjson selected "$selected_components" '[.components[] | select(.id as $id | ($selected | index($id)) != null)] | length' "$profile_file")
   for (( component_index=0; component_index<component_count; component_index++ )); do
-    component_id=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].id" "$profile_file")
-    config_relative=$(jq -r "[.components[] | select(.required or .default_enabled)][$component_index].config" "$profile_file")
+    component_id=$(jq -r --argjson selected "$selected_components" --argjson index "$component_index" '[.components[] | select(.id as $id | ($selected | index($id)) != null)][$index].id' "$profile_file")
+    config_relative=$(jq -r --argjson selected "$selected_components" --argjson index "$component_index" '[.components[] | select(.id as $id | ($selected | index($id)) != null)][$index].config' "$profile_file")
     config_file=$(resolve_file "$profile_dir" "$config_relative")
     component_relative=$(jq -er --arg id "$component_id" '.components[$id].manifest // empty' "$registry") \
       || die "Component is not registered: $component_id"

@@ -23,7 +23,8 @@ write_plan() {
     "    \"commit\": \"$runtime_commit\"" \
     '  },' \
     '  "run_id": "local-motd-smoke",' \
-    "  \"profile\": \"$profile\"" \
+    "  \"profile\": \"$profile\"," \
+    '  "components": ["motd", "health"]' \
     '}' > "$output"
 }
 
@@ -57,6 +58,13 @@ jq '.runtime.manifest_version = "2099.01.01.1"' "$mismatch_plan" > "$mismatch_pl
 mv "$mismatch_plan.next" "$mismatch_plan"
 if "$repo_root/bin/msr" apply --plan "$mismatch_plan" --root "$target_root" >/dev/null 2>&1; then
   printf 'Manifest version mismatch was not rejected.\n' >&2
+  exit 1
+fi
+
+missing_required_plan="$work_dir/missing-required-plan.json"
+jq '.components = ["motd"]' "$plan" > "$missing_required_plan"
+if "$repo_root/bin/msr" apply --plan "$missing_required_plan" --root "$target_root" >/dev/null 2>&1; then
+  printf 'Omitted required component was not rejected.\n' >&2
   exit 1
 fi
 
