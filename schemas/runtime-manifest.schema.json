@@ -68,7 +68,7 @@
     "profileCatalogEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["manifest", "display", "compatibility"],
+      "required": ["manifest", "display", "compatibility", "components"],
       "properties": {
         "manifest": { "type": "string", "minLength": 1 },
         "display": { "$ref": "#/$defs/displayBase" },
@@ -90,6 +90,17 @@
               "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" }
             }
           }
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+        },
+        "optional_components": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
         }
       }
     },
