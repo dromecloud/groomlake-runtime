@@ -87,6 +87,12 @@ unterstützt eine kurze Grace-Phase (Standard 120 Sekunden): Lease abgelaufen
 bleibt standardmäßig deaktiviert, bis ein kontrollierter Dry-Run und ein
 produktiver Test ausdrücklich freigegeben sind.
 
+Der öffentliche Commit-Marker wurde anschließend auf den geprüften
+Content-Commit c145559415779f91dc9f5fd19f6067510deb3f57 gesetzt. Der
+Marker-Commit selbst enthält nur diese Veröffentlichung; dadurch checkt MSO
+den Runtime-Stand mit Komponentenvertrag und Manifest-Version 2026.07.23.2
+aus, ohne einen selbstreferenziellen Commit-Marker zu erzeugen.
+
 ## 2026-07-22 — Git-Clone mit kurzlebigem Broker-Zugriff
 
 Die Paket-Variante wurde als unnötiger Zwischenpfad zurückgenommen. Für den ersten funktionalen
