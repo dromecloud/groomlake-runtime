@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.2",
+  "manifest_version": "2026.07.23.3",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -99,11 +99,11 @@
             "available": true,
             "note": "Nur fuer den kontrollierten Frischserver-Test.",
             "bootstrap": {
-              "version": "v1.0.6",
-              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.6.sh",
-              "sha256": "82299816b26b72a7335f24e37a196480257ebaab60f43003b8248cfdeefc570b",
-              "filename": "mso-bootstrap-v1.0.6.sh",
-              "runtime_commit": "5116591830bb5647621a3fd42b59565ddc2327bf"
+              "version": "v1.0.7",
+              "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.7.sh",
+              "sha256": "324618f90be99e496798ed37df5033451a95ba4c92de6f14adba28c4d15175e9",
+              "filename": "mso-bootstrap-v1.0.7.sh",
+              "runtime_commit": "c145559415779f91dc9f5fd19f6067510deb3f57"
             }
           }
         }
