@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.4",
+  "manifest_version": "2026.07.23.5",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -22,7 +22,7 @@
         "images": ["ubuntu-24.04"]
       },
       "components": ["motd", "health"],
-      "optional_components": []
+      "optional_components": ["hermes", "system-upgrade"]
     }
   },
   "provisioning": {
@@ -136,6 +136,24 @@
         "description": "Temporärer Manifest-Eintrag zur Prüfung der dynamischen MSO-Anzeige.",
         "category": "test",
         "order": 999
+      }
+    },
+    "hermes": {
+      "manifest": "components/hermes/component.json",
+      "display": {
+        "label": "Hermes Agent",
+        "description": "Installiert den Hermes-Agent (Nous Research) unter einem eigenen, sudo-losen Systembenutzer. Bringt automatisch eine Python-Laufzeit (via uv) und eine Hermes-verwaltete Node.js-Laufzeit mit; libatomic1 wird vorab installiert. Modellzugang/API-Schluessel werden bewusst NICHT automatisch eingerichtet, sondern bleiben ein separater, manueller Schritt nach der Installation.",
+        "category": "agents",
+        "order": 30
+      }
+    },
+    "system-upgrade": {
+      "manifest": "components/system-upgrade/component.json",
+      "display": {
+        "label": "System-Upgrade",
+        "description": "Führt einmalig apt-get update && apt-get upgrade -y aus. Unabhängig von anderen Komponenten waehlbar; macht den Server nicht reproduzierbar identisch zu anderen Servern desselben Commits, da der Paketstand vom Zeitpunkt der Ausführung abhaengt.",
+        "category": "system",
+        "order": 40
       }
     }
   }

@@ -121,3 +121,58 @@ ATIS lieferte noch Manifest `2026.07.22.3`, obwohl Git bereits `2026.07.22.5` mi
 `profiles.ironbird.components = ["motd"]` enthielt. Die Runtime-Korrektur wurde per Fast-Forward
 nach `main` übernommen. Vor jedem kostenpflichtigen Server wird deshalb zuerst ATIS-Version und
 Profil-Komponenten geprüft; erst danach folgt der Toolhub-Deploy und der Frischserver-Test.
+
+## 2026-08-02 — Hermes-Agent und System-Upgrade als optionale Ironbird-Komponenten
+
+### Entschieden
+
+- Neue Komponente `hermes` installiert den Hermes-Agent (Nous Research,
+  `https://hermes-agent.nousresearch.com/install.sh`) unter einem eigenen Systembenutzer `hermes`
+  (kein Login-Shell, keine Mitgliedschaft in `sudo`). Der Installer wird per `curl` in eine Datei
+  geladen, gegen eine in `profiles/ironbird/config/hermes.json` gepinnte SHA-256-Prüfsumme geprüft
+  und erst danach als `hermes`-User ausgeführt — kein `curl | bash` ohne vorherige Prüfung.
+- `libatomic1` wird vor dem Hermes-Installer explizit per `apt-get` installiert. Grund: ein
+  Frischservertest am 01.08.2026 scheiterte mit `error while loading shared libraries:
+  libatomic.so.1: cannot open shared object file`; das Paket fehlte auf dem Ubuntu-24.04-Basisimage.
+- Der Installer läuft mit `--skip-setup --non-interactive --skip-browser`. Modellzugang/API-Schlüssel
+  werden bewusst NICHT automatisiert — das bleibt ein separater, manueller Schritt nach der
+  Installation, damit keine Secrets ins Manifest/Git gelangen.
+- Bewusst keine Einzel-Checkboxen für Hermes-interne Abhängigkeiten (Python via `uv`, Hermes-verwaltetes
+  Node.js). Das wären keine unabhängig abwählbaren Fähigkeiten, sondern Interna des Installers; sie
+  stehen stattdessen als Klartext in `manifest.json.components.hermes.display.description`.
+- Keine automatische Fehlerbehebung bei Installationsfehlern. `install.sh` prüft alle bekannten
+  Vorbedingungen hart und bricht bei jeder Abweichung ab (fail-closed, wie `health`); der Fehler landet
+  über den bestehenden ACARS/Health-Pfad im Tower.
+- Neue, unabhängige Komponente `system-upgrade` (`apt-get update && apt-get upgrade -y`) — bewusst
+  getrennt von `hermes`, keine `depends_on`-Beziehung, frei an-/abwählbar. Ein volles Upgrade macht
+  den Paketstand vom Ausführungszeitpunkt abhängig und würde die Reproduzierbarkeit gepinnter Commits
+  aufweichen, wenn es fest in andere Komponenten eingebaut wäre.
+- Beide Komponenten unterstützen ausschließlich `--root /` (echte Systemänderungen, kein
+  Datei-Baum-Dry-Run wie bei `motd`/`health` möglich) und verlangen `EUID 0`.
+- `manifest_version` auf `2026.07.23.5` angehoben; `hermes`/`system-upgrade` in
+  `profiles.ironbird.optional_components` und `profiles/ironbird/profile.json` ergänzt
+  (`required: false`, `default_enabled: false`).
+- Kein Toolhub-Code (MSO/Lifecycle-PHP) geändert: `optional_components`-Checkboxen und deren
+  serverseitige Validierung sind dort bereits vollständig manifest-getrieben.
+
+### Geprüft
+
+```text
+scripts/check.sh: PASS (Syntax, JSON-Validität, msr-motd.sh, msr-hermes.sh)
+tests/smoke/msr-hermes.sh: PASS — bestätigt gezielte Ablehnung wegen --root /
+  für hermes und system-upgrade, nicht irgendeinen Registrierungsfehler
+Working Tree: noch nicht committet (Stand 02.08.2026, Freigabe vor Commit/Push ausstehend)
+```
+
+### Noch offen
+
+1. Commit/Push freigeben lassen (noch nicht erfolgt) und klären, wie `public/atis.php` auf
+   Codehangar den neuen Commit erhält (Plesk-Pull-Mechanismus wie bei früheren Runtime-Releases).
+2. Nach Deployment: `public/commit.txt` auf den neuen Content-Commit setzen.
+3. MSO öffnen und prüfen, dass „Hermes" und „System-Upgrade" als unabhängige Checkboxen unter
+   Iron Bird erscheinen (kann erst nach Schritt 1/2 gegen den echten ATIS-Endpunkt geprüft werden,
+   da MSO lokal weiterhin den deployten Codehangar-Stand lädt, nicht den lokalen Checkout).
+4. Erst danach, mit explizitem Go: realer, kostenpflichtiger Frischserver-Test (prüft `install.sh`/
+   `verify.sh` echt, inkl. der jetzt vorab installierten `libatomic1`-Abhängigkeit).
+5. Modellzugang/API-Schlüssel-Konfiguration und ein "Setup abgeschlossen"-Verweis im Tower bleiben
+   bewusst spätere, eigene Schritte — nicht Teil dieser Komponente.

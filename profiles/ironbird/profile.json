@@ -15,6 +15,20 @@
       "required": true,
       "default_enabled": true,
       "depends_on": []
+    },
+    {
+      "id": "hermes",
+      "config": "config/hermes.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
+    },
+    {
+      "id": "system-upgrade",
+      "config": "config/system-upgrade.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
     }
   ],
   "sequences": []
