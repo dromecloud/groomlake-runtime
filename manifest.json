@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.5",
+  "manifest_version": "2026.07.23.6",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -125,7 +125,7 @@
       "display": {
         "label": "ACARS Health Reporter",
         "description": "Meldet Bootstrap-, Runtime- und Integritaetsstatus strukturiert an den Tower.",
-        "category": "observability",
+        "category": "system",
         "order": 20
       }
     },
