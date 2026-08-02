@@ -161,18 +161,18 @@ Profil-Komponenten geprüft; erst danach folgt der Toolhub-Deploy und der Frisch
 scripts/check.sh: PASS (Syntax, JSON-Validität, msr-motd.sh, msr-hermes.sh)
 tests/smoke/msr-hermes.sh: PASS — bestätigt gezielte Ablehnung wegen --root /
   für hermes und system-upgrade, nicht irgendeinen Registrierungsfehler
-Working Tree: noch nicht committet (Stand 02.08.2026, Freigabe vor Commit/Push ausstehend)
+Commit 52e493a gepusht, commit.txt-Marker in Folgecommit ed06129 gesetzt.
+Live-ATIS (https://groomlake-runtime.aero.drome.cloud/atis.php) verifiziert:
+  X-Groomlake-Manifest-Version 2026.07.23.5, X-Groomlake-Commit 52e493a...,
+  ironbird.optional_components enthält hermes + system-upgrade. Auto-Webhook-
+  Deploy hat diesmal ohne manuellen Plesk-Pull funktioniert.
 ```
 
 ### Noch offen
 
-1. Commit/Push freigeben lassen (noch nicht erfolgt) und klären, wie `public/atis.php` auf
-   Codehangar den neuen Commit erhält (Plesk-Pull-Mechanismus wie bei früheren Runtime-Releases).
-2. Nach Deployment: `public/commit.txt` auf den neuen Content-Commit setzen.
-3. MSO öffnen und prüfen, dass „Hermes" und „System-Upgrade" als unabhängige Checkboxen unter
-   Iron Bird erscheinen (kann erst nach Schritt 1/2 gegen den echten ATIS-Endpunkt geprüft werden,
-   da MSO lokal weiterhin den deployten Codehangar-Stand lädt, nicht den lokalen Checkout).
-4. Erst danach, mit explizitem Go: realer, kostenpflichtiger Frischserver-Test (prüft `install.sh`/
+1. MSO in echt öffnen und die beiden Checkboxen unter Iron Bird visuell bestätigen (ATIS-seitig
+   bereits verifiziert, UI-seitig noch nicht mit eigenen Augen geprüft).
+2. Erst danach, mit explizitem Go: realer, kostenpflichtiger Frischserver-Test (prüft `install.sh`/
    `verify.sh` echt, inkl. der jetzt vorab installierten `libatomic1`-Abhängigkeit).
-5. Modellzugang/API-Schlüssel-Konfiguration und ein "Setup abgeschlossen"-Verweis im Tower bleiben
+3. Modellzugang/API-Schlüssel-Konfiguration und ein "Setup abgeschlossen"-Verweis im Tower bleiben
    bewusst spätere, eigene Schritte — nicht Teil dieser Komponente.
