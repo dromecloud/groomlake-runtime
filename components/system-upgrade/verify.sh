@@ -18,7 +18,7 @@ status_file="$target_root/var/lib/mission-systems-officer/system-upgrade.status"
 [[ -f "$status_file" ]] || { printf 'System-upgrade status marker is missing.\n' >&2; exit 1; }
 grep -q '^completed_at=' "$status_file" || { printf 'System-upgrade status marker is malformed.\n' >&2; exit 1; }
 
-if command -v apt-get >/dev/null 2>&1; then
-  broken=$(dpkg -l 2>/dev/null | awk '$1 !~ /^(ii|un)$/' | wc -l)
-  [[ "$broken" -eq 0 ]] || { printf 'apt reports broken packages after upgrade.\n' >&2; exit 1; }
+if command -v dpkg >/dev/null 2>&1; then
+  broken=$(dpkg --audit 2>/dev/null)
+  [[ -z "$broken" ]] || { printf 'dpkg --audit reports broken packages after upgrade:\n%s\n' "$broken" >&2; exit 1; }
 fi
