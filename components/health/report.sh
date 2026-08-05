@@ -29,7 +29,7 @@ bootstrap_task='bootstrap_running'
 bootstrap_detail=''
 if [[ -r "$STATUS_FILE" ]] && jq -e . "$STATUS_FILE" >/dev/null 2>&1; then
   bootstrap_status=$(jq -r '.status // "running"' "$STATUS_FILE")
-  bootstrap_task=$(jq -r '.current_task // .task // "bootstrap_running"' "$STATUS_FILE")
+  bootstrap_task=$(jq -r '.current_step // .current_task // .task // "bootstrap_running"' "$STATUS_FILE")
   bootstrap_detail=$(jq -r '.error // .detail // empty' "$STATUS_FILE" | tr '\n' ' ' | cut -c1-300)
 fi
 [[ "$bootstrap_status" =~ ^(pending|running|complete|failed|stale)$ ]] || bootstrap_status='running'
