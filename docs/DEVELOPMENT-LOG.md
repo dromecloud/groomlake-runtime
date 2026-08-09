@@ -176,3 +176,19 @@ Live-ATIS (https://groomlake-runtime.aero.drome.cloud/atis.php) verifiziert:
    `verify.sh` echt, inkl. der jetzt vorab installierten `libatomic1`-Abhängigkeit).
 3. Modellzugang/API-Schlüssel-Konfiguration und ein "Setup abgeschlossen"-Verweis im Tower bleiben
    bewusst spätere, eigene Schritte — nicht Teil dieser Komponente.
+
+### Nachtrag 09.08.2026 — Frischservertest erfolgreich, zwei Bugs unterwegs gefunden und gefixt
+
+Erster echter Frischservertest (`ironbird-hermes-testserver`, Profil `ironbird`, Komponenten
+motd/health/hermes/system-upgrade) lief bis zum Abbruch bei `system-upgrade` durch — root cause:
+`verify.sh` zählte die 5 Kopfzeilen von `dpkg -l` faelschlich als kaputte Pakete auf jedem System,
+nicht nur bei echten Problemen. Gefixt durch `dpkg --audit` (Commit `8ebfabd`). Nebenbei einen zweiten,
+unabhängigen Bug gefunden: der ACARS-Reporter las `.current_task`/`.task` statt des tatsächlich vom
+Bootstrap geschriebenen Felds `.current_step`, wodurch Tower bei jedem Fehler immer nur generisch
+„bootstrap_running" statt der echten Stufe zeigte (Commit `a366e9a`).
+
+Zweiter Testlauf (gleicher Server, Commit `8ebfabd`) lief vollständig durch: `boot-status.json` zeigt
+`status: complete`, `dpkg --audit` leer, `hermes --version` als `hermes`-Systembenutzer liefert
+„Hermes Agent v0.20.0 (2026.8.3)". `system-upgrade.status` korrekt geschrieben. Verifiziert per SSH
+(`178.105.219.191`), nicht nur über ACARS/Tower. Damit ist der Hermes-Komponentenvertrag real bewiesen,
+nicht nur lokal simuliert.
