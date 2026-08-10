@@ -98,6 +98,22 @@ zweimal aus und prüft zusätzlich unbekannte Profile sowie einen Manifest-Versi
 scripts/check.sh
 ```
 
+## Veröffentlichen (Pflicht nach jedem Commit, der `manifest.json` ändert)
+
+`public/commit.txt` muss nach jeder inhaltlichen Änderung in einem eigenen Folgecommit auf den
+neuen HEAD zeigen (ein Commit kann nicht auf sich selbst verweisen). Wird dieser zweite Schritt
+vergessen oder verzögert, liefert ATIS `manifest_version` und `commit` kurzzeitig inkonsistent —
+ein echter Frischservertest bricht dann mit „Manifest-Version stimmt nicht mit dem Broker-Plan
+ueberein" ab, noch bevor die erste Komponente installiert. Deshalb **immer**, nicht manuell:
+
+```bash
+scripts/publish.sh
+```
+
+Setzt `commit.txt`, committet, pusht und prüft live gegen ATIS (mit Retry), dass Manifest-Version
+und ausgelieferter Commit zusammenpassen. Bricht laut und mit Exit-Code ungleich 0 ab, wenn ATIS
+nicht konvergiert — dann keinen Frischservertest starten, bis das behoben ist.
+
 ## Ablageregeln
 
 - Eine installierbare Fähigkeit liegt genau einmal unter `components/`.

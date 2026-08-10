@@ -16,6 +16,7 @@ bash -n \
   components/system-upgrade/install.sh \
   components/system-upgrade/verify.sh \
   scripts/check.sh \
+  scripts/publish.sh \
   tests/smoke/msr-motd.sh \
   tests/smoke/msr-hermes.sh
 sh -n components/motd/render.sh

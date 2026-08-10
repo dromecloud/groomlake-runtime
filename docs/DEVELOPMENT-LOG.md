@@ -218,3 +218,19 @@ Ein-Argument-Indirektions-Shim `hermes-launcher`, das die App korrekt zum echten
 `verify.sh` prüft jetzt alle vier Punkte zusätzlich. Noch nicht erneut real getestet (Testserver lief
 in der Zwischenzeit per Deadman-Control-Standardlease von 1h ab) — nächster Frischservertest sollte
 das end-to-end bestätigen.
+
+### Nachtrag 10.08.2026 — Selbstverursachter ATIS-Deployment-Drift, jetzt strukturell abgesichert
+
+Nach dem Commit „Hermes-Beschreibung kürzen" wurde der zweite, separate `commit.txt`-Marker-Commit
+vergessen. ATIS lieferte dadurch kurzzeitig `manifest_version 2026.07.23.8` (live von `main`), aber
+`X-Groomlake-Commit` zeigte noch auf einen älteren Commit mit `manifest_version 2026.07.23.7`. Ein
+echter Frischservertest (`ironbird-hermes-testserver`) brach dadurch mit „Manifest-Version stimmt
+nicht mit dem Broker-Plan ueberein" beim Bootstrap-Schritt `runtime` ab — **vor** jeglicher
+Komponenten-Installation, auch `motd` wurde nie erreicht. Root-Cause live per SSH auf dem
+gescheiterten Server bestätigt (`boot-status.json`, `cloud-init-output.log`), nicht nur vermutet.
+
+Behoben und strukturell abgesichert: neues `scripts/publish.sh` macht aus dem fehleranfälligen
+Zwei-Schritte-Tanz (Inhalts-Commit, dann separat den Marker-Commit) einen einzigen Befehl, der
+zusätzlich live gegen ATIS verifiziert (mit Retry) und laut abbricht, wenn Manifest-Version und
+ausgelieferter Commit nicht zusammenpassen. Ab jetzt Pflicht nach jedem Commit, der `manifest.json`
+ändert — siehe README.md.
