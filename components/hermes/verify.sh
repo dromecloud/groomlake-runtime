@@ -38,3 +38,16 @@ owner=$(stat -c '%U' "$command_path" 2>/dev/null || stat -f '%Su' "$command_path
 
 runuser -u hermes -- env HOME=/home/hermes "$command_path" --version >/dev/null \
   || { printf 'Hermes command failed to run as the hermes user.\n' >&2; exit 1; }
+
+# Optional: only verified when the owner actually requested automatic model
+# access (MSO_NOUS_API_KEY inherited from the same shell environment that
+# ran install.sh -- see install.sh for the full mechanism). Absent by
+# default, which is the expected/normal case.
+if [[ -n "${MSO_NOUS_API_KEY:-}" ]]; then
+  env_file=/home/hermes/.hermes/.env
+  [[ -f "$env_file" ]] || { printf 'MSO_NOUS_API_KEY was requested but %s is missing.\n' "$env_file" >&2; exit 1; }
+  env_perm=$(stat -c '%a' "$env_file" 2>/dev/null || stat -f '%Lp' "$env_file")
+  [[ "$env_perm" == '600' ]] || { printf '%s has unsafe permissions: %s\n' "$env_file" "$env_perm" >&2; exit 1; }
+  grep -q "^NOUS_API_KEY=${MSO_NOUS_API_KEY}\$" "$env_file" \
+    || { printf 'NOUS_API_KEY in %s does not match the requested key.\n' "$env_file" >&2; exit 1; }
+fi

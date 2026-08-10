@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.8",
+  "manifest_version": "2026.07.23.9",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",

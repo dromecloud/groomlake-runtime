@@ -88,6 +88,34 @@ chown hermes:hermes "$installer_path"
 # is deliberately configured later, by a human, never baked into the manifest.
 runuser -u hermes -- env HOME=/home/hermes bash "$installer_path" "${install_flags[@]}"
 
+# Optional automatic model access: groomlake-lifecycle.php embeds
+# MSO_NOUS_API_KEY as an inherited shell environment variable (same
+# mechanism as MSO_HEALTH_TOKEN, see that variable's own component for
+# precedent) only when the owner explicitly checked "Automatischer
+# Modellzugang" in MSO AND a key is configured server-side. Deliberately
+# tied to an isolated, capped Nous account -- see
+# groomlake-provisioning.config.example.php in toolhub-classic for the
+# reasoning. Absent by default: manual `hermes portal` remains the norm.
+nous_api_key=${MSO_NOUS_API_KEY:-}
+if [[ -n "$nous_api_key" ]]; then
+  if [[ "$nous_api_key" == *$'\n'* ]]; then
+    printf 'MSO_NOUS_API_KEY must not contain newlines.\n' >&2
+    exit 78
+  fi
+  env_file=/home/hermes/.hermes/.env
+  install -d -m 0700 -o hermes -g hermes /home/hermes/.hermes
+  touch "$env_file"
+  chmod 0600 "$env_file"
+  chown hermes:hermes "$env_file"
+  # Idempotent: drop any prior NOUS_API_KEY line before appending the
+  # current one, so a re-run never leaves two conflicting values.
+  grep -v '^NOUS_API_KEY=' "$env_file" > "${env_file}.tmp" 2>/dev/null || true
+  mv "${env_file}.tmp" "$env_file"
+  printf 'NOUS_API_KEY=%s\n' "$nous_api_key" >> "$env_file"
+  chown hermes:hermes "$env_file"
+  chmod 0600 "$env_file"
+fi
+
 # Workaround for a Hermes Desktop bug: its SSH connect mode resolves a
 # `exec <python> <script> "$@"` wrapper by taking only the first exec
 # argument (the interpreter), dropping the script path, and ends up trying
