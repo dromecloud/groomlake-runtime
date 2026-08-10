@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.7",
+  "manifest_version": "2026.07.23.8",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -142,7 +142,7 @@
       "manifest": "components/hermes/component.json",
       "display": {
         "label": "Hermes Agent",
-        "description": "Sudo-loser Systembenutzer, kein root.\n- Hermes Agent (Nous Research) — Version zum Installationszeitpunkt, NICHT fest gepinnt\n- Python-Laufzeit via uv — aktuell 3.11, von Nous vorgegeben\n- Node.js-Laufzeit, Hermes-verwaltet — aktuell 22, von Nous vorgegeben\n- libatomic1 (Ubuntu-Paket) — vorab installiert, behebt bekannten Startfehler\n- Modellzugang/API-Schluessel — NICHT automatisch, separater manueller Schritt danach",
+        "description": "Hermes-Agent (Nous Research), eigener sudo-loser Systembenutzer.\n- Python via uv (3.11, von Nous vorgegeben)\n- Node.js, Hermes-verwaltet (22, von Nous vorgegeben)\n- libatomic1 vorab installiert\n- Modellzugang: separater manueller Schritt danach",
         "category": "agents",
         "order": 30
       }
