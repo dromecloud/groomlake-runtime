@@ -233,4 +233,16 @@ Behoben und strukturell abgesichert: neues `scripts/publish.sh` macht aus dem fe
 Zwei-Schritte-Tanz (Inhalts-Commit, dann separat den Marker-Commit) einen einzigen Befehl, der
 zusätzlich live gegen ATIS verifiziert (mit Retry) und laut abbricht, wenn Manifest-Version und
 ausgelieferter Commit nicht zusammenpassen. Ab jetzt Pflicht nach jedem Commit, der `manifest.json`
-ändert — siehe README.md.
+ändert — siehe README.md. Zusätzlich GitHub Action `.github/workflows/publish-commit-marker.yml`:
+läuft bei jedem Push nach `main`, unabhängig davon wer/was pusht — macht den Schritt strukturell statt
+nur werkzeuggestützt. Repo-Workflow-Rechte auf „Read and write" gestellt (David, explizit bestätigt).
+
+### Nachtrag 10.08.2026 (2) — Dritter Frischservertest: end-to-end sauber, keine manuellen Schritte mehr
+
+Neuer Server (`178.105.219.191`, IP von Hetzner wiederverwendet — alter Testserver war per
+Deadman-Lease bereits abgelaufen), Profil `ironbird`, alle vier Komponenten. `boot-status.json`:
+`status: complete`. Diesmal zusätzlich verifiziert, dass die SSH-Automatisierung aus dem vorherigen
+Nachtrag wirklich greift, nicht nur syntaktisch: direkter SSH-Login als `hermes` (kein Root-Umweg),
+`hermes --version` ohne vollen Pfad (PATH-Fix), `dpkg --audit` leer, `hermes-launcher`-Shim vorhanden
+und ausführbar. Erster Test seit Projektbeginn ganz ohne manuellen SSH-Nacharbeitsschritt — nur der
+bewusst manuelle Nous-Login (`hermes portal`) bleibt offen, wie vorgesehen.
