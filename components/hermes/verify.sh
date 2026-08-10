@@ -21,6 +21,16 @@ if id -nG hermes 2>/dev/null | tr ' ' '\n' | grep -qx 'sudo'; then
 fi
 dpkg -s libatomic1 >/dev/null 2>&1 || { printf 'libatomic1 is not installed.\n' >&2; exit 1; }
 
+hermes_shell=$(getent passwd hermes | cut -d: -f7)
+[[ "$hermes_shell" != */nologin ]] || { printf 'Hermes user has no login shell (SSH access would be refused).\n' >&2; exit 1; }
+[[ -f /home/hermes/.ssh/authorized_keys ]] || { printf 'Hermes has no authorized_keys — direct SSH login is not possible.\n' >&2; exit 1; }
+key_perm=$(stat -c '%a' /home/hermes/.ssh/authorized_keys 2>/dev/null || stat -f '%Lp' /home/hermes/.ssh/authorized_keys)
+[[ "$key_perm" == '600' ]] || { printf 'Hermes authorized_keys has unsafe permissions: %s\n' "$key_perm" >&2; exit 1; }
+grep -q '/home/hermes/.local/bin' /etc/environment 2>/dev/null \
+  || { printf 'Hermes PATH is not set in /etc/environment (non-interactive SSH commands will not find hermes).\n' >&2; exit 1; }
+[[ -x /home/hermes/.local/bin/hermes-launcher ]] \
+  || { printf 'hermes-launcher shim is missing (Hermes Desktop SSH connect mode will fail to locate hermes).\n' >&2; exit 1; }
+
 command_path="/home/hermes/.local/bin/hermes"
 [[ -x "$command_path" ]] || { printf 'Hermes command is missing or not executable: %s\n' "$command_path" >&2; exit 1; }
 owner=$(stat -c '%U' "$command_path" 2>/dev/null || stat -f '%Su' "$command_path")

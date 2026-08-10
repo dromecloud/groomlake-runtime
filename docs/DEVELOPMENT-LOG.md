@@ -192,3 +192,29 @@ Zweiter Testlauf (gleicher Server, Commit `8ebfabd`) lief vollständig durch: `b
 „Hermes Agent v0.20.0 (2026.8.3)". `system-upgrade.status` korrekt geschrieben. Verifiziert per SSH
 (`178.105.219.191`), nicht nur über ACARS/Tower. Damit ist der Hermes-Komponentenvertrag real bewiesen,
 nicht nur lokal simuliert.
+
+### Nachtrag 10.08.2026 — Hermes-Desktop-SSH-Zugriff nachträglich manuell gefunden, jetzt in install.sh
+
+Beim Versuch, die Hermes-Desktop-App (Mac) per „Connect via SSH" mit dem Testserver zu verbinden,
+fielen drei zusätzliche, bisher nicht in `install.sh` abgedeckte Lücken auf (alle manuell auf dem
+inzwischen abgelaufenen Testserver gefixt, jetzt fest eingebaut, damit kein Server das nochmal von
+Hand braucht):
+
+1. `hermes`-User hatte `nologin`-Shell — SSH-Login direkt als `hermes` war unmöglich, nur über
+   root+`runuser` erreichbar. Jetzt `/bin/bash` (weiterhin kein sudo — das bleibt die eigentliche
+   Sicherheitsgrenze, nicht der Login selbst).
+2. `hermes` hatte keine `authorized_keys` — jetzt wird `/root/.ssh/authorized_keys` (der beim Erstellen
+   ohnehin schon vom Owner gewählte Plattform-/Personal-Key) auf `hermes` gespiegelt. Kein zweiter,
+   separat zu verwaltender Key.
+3. `ssh hermes@host "hermes ..."` (nicht-interaktiv) fand den Befehl nicht — `.bashrc`/`.profile`
+   werden bei dieser Aufrufart nicht gelesen. Fix: PATH zusätzlich in `/etc/environment` eingetragen
+   (wird von PAM bei jeder SSH-Sitzung gelesen, unabhängig vom Shell-Modus).
+
+Zusätzlich ein Bug in Hermes Desktop selbst gefunden (nicht unser Code, aber umgangen): die App löst
+den `hermes`-Wrapper (`exec <venv-python> <script> "$@"`) fehlerhaft auf — nimmt nur das erste
+`exec`-Argument (den nackten Python-Interpreter), verliert das Script-Argument. Workaround: ein
+Ein-Argument-Indirektions-Shim `hermes-launcher`, das die App korrekt zum echten Wrapper durchreicht.
+
+`verify.sh` prüft jetzt alle vier Punkte zusätzlich. Noch nicht erneut real getestet (Testserver lief
+in der Zwischenzeit per Deadman-Control-Standardlease von 1h ab) — nächster Frischservertest sollte
+das end-to-end bestätigen.
