@@ -20,11 +20,21 @@ cd "$repo_root"
 git diff --quiet && git diff --cached --quiet \
   || { printf 'Working tree is not clean -- commit or stash your changes first.\n' >&2; exit 1; }
 
-current_marker=$(cat public/commit.txt 2>/dev/null || printf '')
 head_commit=$(git rev-parse HEAD)
+marker_commit=$(cat public/commit.txt 2>/dev/null || printf '')
 
-if [[ "$current_marker" == "$head_commit" ]]; then
-  printf 'commit.txt already points at HEAD (%s) -- nothing to publish.\n' "$head_commit"
+# Comparing commit.txt to HEAD literally can never succeed (a commit cannot
+# name its own hash), which would force a marker commit after every single
+# invocation, including ones where nothing changed since the last publish --
+# an unbounded chain. What actually matters is whether any real content
+# differs between what the marker currently points at and HEAD, ignoring
+# commit.txt itself (that file always differs by construction). A pure
+# manifest_version comparison isn't enough either: a component script change
+# (install.sh/verify.sh) with no manifest_version bump still needs a new
+# marker, since MSR pins the exact commit, not just the manifest_version/SHA.
+if [[ -n "$marker_commit" ]] && git cat-file -e "${marker_commit}^{commit}" 2>/dev/null \
+   && git diff --quiet "${marker_commit}" HEAD -- . ':(exclude)public/commit.txt'; then
+  printf 'No content change since the last marker (%s) -- nothing to publish.\n' "$marker_commit"
 else
   printf '%s' "$head_commit" > public/commit.txt
   git add public/commit.txt
@@ -34,21 +44,28 @@ else
 fi
 
 printf 'Verifying live ATIS consistency...\n'
+local_manifest_version=$(jq -r '.manifest_version' manifest.json)
 for attempt in 1 2 3 4 5; do
   atis_json=$(curl -fsS "https://groomlake-runtime.aero.drome.cloud/atis.php") || atis_json=''
   atis_commit=$(curl -fsSI "https://groomlake-runtime.aero.drome.cloud/atis.php" 2>/dev/null \
     | tr -d '\r' | awk -F': ' 'tolower($1)=="x-groomlake-commit"{print $2}')
   atis_manifest_version=$(printf '%s' "$atis_json" | jq -r '.manifest_version // empty' 2>/dev/null || printf '')
-  local_manifest_version=$(jq -r '.manifest_version' manifest.json)
-  head_manifest_version=$(git show "${atis_commit:-HEAD}:manifest.json" 2>/dev/null | jq -r '.manifest_version // empty')
+  # The commit ATIS names must itself, at that exact commit, carry the same
+  # manifest_version ATIS is serving live -- that's what MSR actually checks.
+  commit_manifest_version=$(git show "${atis_commit:-__none__}:manifest.json" 2>/dev/null | jq -r '.manifest_version // empty')
+  no_pending_change=false
+  if git cat-file -e "${atis_commit:-__none__}^{commit}" 2>/dev/null \
+     && git diff --quiet "${atis_commit}" HEAD -- . ':(exclude)public/commit.txt' 2>/dev/null; then
+    no_pending_change=true
+  fi
 
-  if [[ "$atis_commit" == "$head_commit" && "$atis_manifest_version" == "$local_manifest_version" \
-        && "$head_manifest_version" == "$local_manifest_version" ]]; then
-    printf 'OK: ATIS commit=%s manifest_version=%s -- consistent.\n' "$atis_commit" "$atis_manifest_version"
+  if [[ "$atis_manifest_version" == "$local_manifest_version" && "$commit_manifest_version" == "$local_manifest_version" \
+        && "$no_pending_change" == true ]]; then
+    printf 'OK: ATIS commit=%s manifest_version=%s -- consistent, matches HEAD content.\n' "$atis_commit" "$atis_manifest_version"
     exit 0
   fi
-  printf '  attempt %s/5: ATIS not yet consistent (commit=%s manifest_version=%s, expected commit=%s manifest_version=%s) -- retrying in 3s...\n' \
-    "$attempt" "${atis_commit:-<none>}" "${atis_manifest_version:-<none>}" "$head_commit" "$local_manifest_version"
+  printf '  attempt %s/5: ATIS not yet consistent (commit=%s manifest_version=%s) -- retrying in 3s...\n' \
+    "$attempt" "${atis_commit:-<none>}" "${atis_manifest_version:-<none>}"
   sleep 3
 done
 
