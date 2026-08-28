@@ -140,3 +140,27 @@ http://localhost:3000
   betrifft nur den ReAct-Agent-Node-Typ, restliche Funktionalität unbeeinträchtigt
 - Persistenz nach Server-Neustart wurde manuell getestet, aber noch nicht
   in ein automatisiertes Test-Skript überführt
+  
+  
+Dieses Repository enthält aktuell nur die **Baupläne** für den
+Flowise-Aufbau (Compose-Datei, dokumentierte Schrittfolge). Die
+**Ausführung** dieser Schritte erfolgt bisher manuell auf einem
+temporären Iron-Bird-Server.
+
+**In GitHub verbleibt:**
+- `docker-compose.yml` (Container-Definition, Image-Version, Ports, Volumes)
+- Diese README als dokumentierte Installationssequenz
+
+**In die Groomlake Runtime wandert** (nächste Phase):
+- Automatisiertes Ausführen der Schritte 3–7 (Docker-Installation,
+  Compose-Datei-Bereitstellung, Container-Start) ohne manuelles
+  SSH-Eintippen
+- Möglichst auch Schritt 1 (Server-Bereitstellung über Toolhub),
+  sofern die Runtime das anstoßen kann
+- Die Schritte 2, 8 und 9 (SSH-Verbindung, Tunnel-Aufbau,
+  Browser-Test) bleiben vermutlich auch danach manuelle
+  Nutzerinteraktion, da sie den Zugriff einer Person betreffen,
+  nicht die Server-Konfiguration selbst
+
+Der Frischserver-Test in Phase 5 soll zeigen, ob diese Trennung so
+funktioniert.
