@@ -145,7 +145,7 @@
         "description": "Hermes-Agent (Nous Research), eigener sudo-loser Systembenutzer.\n- Python via uv (3.11, von Nous vorgegeben)\n- Node.js, Hermes-verwaltet (22, von Nous vorgegeben)\n- libatomic1 vorab installiert\n- Modellzugang: separater manueller Schritt danach",
         "category": "agents",
         "order": 30
-      }
+      } 
     },
 	"flowise": {
 	  "manifest": "components/flowise/component.json",
@@ -154,8 +154,8 @@
 		"description": "Low-Code-Editor für LLM-Workflows (Chatflows, Agenten, RAG), als Docker-Container, nur intern über SSH-Tunnel erreichbar.",
 		"category": "agents",
 		"order": 50
-  }
-}
+	  } 
+	},	
     "system-upgrade": {
       "manifest": "components/system-upgrade/component.json",
       "display": {
