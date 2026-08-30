@@ -29,7 +29,7 @@
       "required": false,
       "default_enabled": false,
       "depends_on": []
-    }
+    },
 	{
 	  "id": "flowise",
 	  "config": "config/flowise.json",
