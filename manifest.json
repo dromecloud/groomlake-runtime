@@ -91,7 +91,7 @@
               "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/stable/base/mso-bootstrap-v1.0.7.sh",
               "sha256": "324618f90be99e496798ed37df5033451a95ba4c92de6f14adba28c4d15175e9",
               "filename": "mso-bootstrap-v1.0.7.sh",
-              "runtime_commit": "42d69427f1f642ae79e12645beda6d859d4fe047"
+              "runtime_commit": "d373cdfca4b7bf99cd9784b7701fc50aa01449d3"
             }
           },
           "dev": {
@@ -103,7 +103,7 @@
               "url": "https://codehangar.aero.drome.cloud/server/bootstrap/ubuntu/24.04/dev/base/mso-bootstrap-v1.0.7.sh",
               "sha256": "324618f90be99e496798ed37df5033451a95ba4c92de6f14adba28c4d15175e9",
               "filename": "mso-bootstrap-v1.0.7.sh",
-              "runtime_commit": "42d69427f1f642ae79e12645beda6d859d4fe047"
+              "runtime_commit": "d373cdfca4b7bf99cd9784b7701fc50aa01449d3"
             }
           }
         }
