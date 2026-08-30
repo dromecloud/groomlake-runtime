@@ -22,7 +22,7 @@
         "images": ["ubuntu-24.04"]
       },
       "components": ["motd", "health"],
-      "optional_components": ["hermes", "system-upgrade"]
+      "optional_components": ["hermes", "system-upgrade", "flowise"]
     }
   },
   "provisioning": {
@@ -147,6 +147,15 @@
         "order": 30
       }
     },
+	"flowise": {
+	  "manifest": "components/flowise/component.json",
+	  "display": {
+		"label": "Flowise",
+		"description": "Low-Code-Editor für LLM-Workflows (Chatflows, Agenten, RAG), als Docker-Container, nur intern über SSH-Tunnel erreichbar.",
+		"category": "agents",
+		"order": 50
+  }
+}
     "system-upgrade": {
       "manifest": "components/system-upgrade/component.json",
       "display": {
