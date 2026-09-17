@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "id": "ai-lab-langchain",
+  "install": "install.sh",
+  "verify": "verify.sh"
+}

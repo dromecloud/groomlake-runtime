@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "manifest_version": "2026.07.23.9",
+  "manifest_version": "2026.09.17.1",
   "runtime": {
     "id": "groomlake-runtime",
     "name": "Mission Systems Runtime",
@@ -22,7 +22,7 @@
         "images": ["ubuntu-24.04"]
       },
       "components": ["motd", "health"],
-      "optional_components": ["hermes", "system-upgrade", "flowise"]
+      "optional_components": ["hermes", "system-upgrade", "flowise", "ai-lab-langchain", "ai-lab-openai-sdk", "ai-lab-crewai"]
     }
   },
   "provisioning": {
@@ -163,6 +163,33 @@
         "description": "Führt einmalig apt-get update && apt-get upgrade -y aus. Unabhängig von anderen Komponenten waehlbar; macht den Server nicht reproduzierbar identisch zu anderen Servern desselben Commits, da der Paketstand vom Zeitpunkt der Ausführung abhaengt.",
         "category": "system",
         "order": 40
+      }
+    },
+    "ai-lab-langchain": {
+      "manifest": "components/ai-lab-langchain/component.json",
+      "display": {
+        "label": "AI Lab: LangChain/LangGraph",
+        "description": "JupyterLab (nur loopback, per SSH-Tunnel erreichbar) mit LangGraph, LangChain, langchain-openai und langchain-anthropic vorinstalliert, eigener sudo-loser Systembenutzer 'ai-lab'. Kein Modell-Key vorkonfiguriert — Key nach der Installation manuell in /home/ai-lab/.env eintragen und den Dienst neu starten. Experimentierumgebung, keine produktive Nutzung.",
+        "category": "agents",
+        "order": 51
+      }
+    },
+    "ai-lab-openai-sdk": {
+      "manifest": "components/ai-lab-openai-sdk/component.json",
+      "display": {
+        "label": "AI Lab: OpenAI SDK",
+        "description": "Wie 'AI Lab: LangChain/LangGraph', aber schlank: nur das offizielle openai-Python-SDK statt LangChain/LangGraph. Eigener Port, eigenes venv, kann parallel zum LangChain-Lab laufen. Gleicher sudo-loser Systembenutzer 'ai-lab', gleicher Ort für den Modell-Key.",
+        "category": "agents",
+        "order": 52
+      }
+    },
+    "ai-lab-crewai": {
+      "manifest": "components/ai-lab-crewai/component.json",
+      "display": {
+        "label": "AI Lab: CrewAI",
+        "description": "Wie die anderen AI-Lab-Komponenten, aber mit CrewAI statt LangChain/LangGraph. Eigener Port, eigenes venv, kann parallel zu den anderen AI-Lab-Komponenten laufen. Gleicher sudo-loser Systembenutzer 'ai-lab', gleicher Ort für den Modell-Key.",
+        "category": "agents",
+        "order": 53
       }
     }
   }

@@ -15,10 +15,17 @@ bash -n \
   components/hermes/verify.sh \
   components/system-upgrade/install.sh \
   components/system-upgrade/verify.sh \
+  components/ai-lab-langchain/install.sh \
+  components/ai-lab-langchain/verify.sh \
+  components/ai-lab-openai-sdk/install.sh \
+  components/ai-lab-openai-sdk/verify.sh \
+  components/ai-lab-crewai/install.sh \
+  components/ai-lab-crewai/verify.sh \
   scripts/check.sh \
   scripts/publish.sh \
   tests/smoke/msr-motd.sh \
-  tests/smoke/msr-hermes.sh
+  tests/smoke/msr-hermes.sh \
+  tests/smoke/msr-ai-lab.sh
 sh -n components/motd/render.sh
 
 find . -path './.git' -prune -o -name '*.json' -type f -print0 \
@@ -26,5 +33,6 @@ find . -path './.git' -prune -o -name '*.json' -type f -print0 \
 
 tests/smoke/msr-motd.sh
 tests/smoke/msr-hermes.sh
+tests/smoke/msr-ai-lab.sh
 git diff --check
 printf 'All Groomlake Runtime checks passed.\n'

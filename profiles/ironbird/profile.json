@@ -30,13 +30,34 @@
       "default_enabled": false,
       "depends_on": []
     },
-	{
-	  "id": "flowise",
-	  "config": "config/flowise.json",
-	  "required": false,
-	  "default_enabled": false,
-	  "depends_on": []
-	}
+    {
+      "id": "flowise",
+      "config": "config/flowise.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
+    },
+    {
+      "id": "ai-lab-langchain",
+      "config": "config/ai-lab-langchain.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
+    },
+    {
+      "id": "ai-lab-openai-sdk",
+      "config": "config/ai-lab-openai-sdk.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
+    },
+    {
+      "id": "ai-lab-crewai",
+      "config": "config/ai-lab-crewai.json",
+      "required": false,
+      "default_enabled": false,
+      "depends_on": []
+    }
   ],
   "sequences": []
 }
