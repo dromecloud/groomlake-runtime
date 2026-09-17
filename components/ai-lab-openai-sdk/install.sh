@@ -40,9 +40,9 @@ apt-get install -y -qq python3-venv python3-pip
 component_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 venv_dir=/home/ai-lab/openai-env
 if [[ ! -d "$venv_dir" ]]; then
-  runuser -u ai-lab -- python3 -m venv "$venv_dir"
+  runuser -u ai-lab -- env -C /home/ai-lab HOME=/home/ai-lab python3 -m venv "$venv_dir"
 fi
-runuser -u ai-lab -- "$venv_dir/bin/pip" install --no-cache-dir --quiet \
+runuser -u ai-lab -- env -C /home/ai-lab HOME=/home/ai-lab "$venv_dir/bin/pip" install --no-cache-dir --quiet \
   openai jupyterlab python-dotenv
 
 install -d -m 0755 -o ai-lab -g ai-lab /home/ai-lab/notebooks

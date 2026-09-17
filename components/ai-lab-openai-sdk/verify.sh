@@ -22,7 +22,9 @@ fi
 
 venv_python=/home/ai-lab/openai-env/bin/python
 [[ -x "$venv_python" ]] || { printf 'OpenAI SDK venv is missing: %s\n' "$venv_python" >&2; exit 1; }
-runuser -u ai-lab -- "$venv_python" -c 'import openai, jupyterlab' \
+# MSR runs components from its own caller's working directory, which may be
+# unreadable for ai-lab (/root, for example); pin one ai-lab can read.
+runuser -u ai-lab -- env -C /home/ai-lab HOME=/home/ai-lab "$venv_python" -c 'import openai, jupyterlab' \
   || { printf 'OpenAI SDK venv is missing required packages.\n' >&2; exit 1; }
 
 status_file="$target_root/var/lib/mission-systems-officer/ai-lab-openai-sdk.status"
