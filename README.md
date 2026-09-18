@@ -120,3 +120,26 @@ nicht konvergiert — dann keinen Frischservertest starten, bis das behoben ist.
 - Profile kopieren keine Installer, sondern wählen Komponenten und liefern ihre Konfiguration.
 - Laufzeitberichte und Rohlogs gehören nicht ins Git.
 - Geheimnisse und produktive Zugangsdaten gehören niemals in dieses Repository.
+
+## Sichtbarkeit dieses Repositories
+
+Entscheidung vom 18.09.2026: Dieses Repository wird **öffentlich**. Der Phase-7-Bootstrap holt den
+Stand dann direkt über HTTPS am gepinnten Commit, statt ihn per kurzlebigem GitHub-App-Token über
+einen Broker zu klonen. Die Integrität hängt weiterhin am gepinnten Commit plus `manifest_sha256`,
+die MSR fail-closed erneut prüft — sie hing nie an der Nichtöffentlichkeit des Repositories.
+
+Praktische Folge für alle Beiträge: Die letzte Ablageregel oben ist damit nicht länger nur eine
+Konvention, sondern hart. Komponenten erhalten Geheimnisse ausschließlich über Umgebungsvariablen,
+die zur Installationszeit injiziert werden (siehe `MSO_HEALTH_TOKEN` in `components/health/` und
+`MSO_NOUS_API_KEY` in `components/hermes/`), niemals über Dateien in diesem Repository.
+
+Begründung und Umsetzungsplan stehen in `groomlake/docs/PHASE-7-PROVISIONING.md`.
+
+## Arbeitsverzeichnis in Komponenten
+
+`bin/msr` wechselt vor dem Aufruf einer Komponente **nicht** das Verzeichnis, Skripte erben also das
+Arbeitsverzeichnis des Aufrufers — auf einem echten Server typischerweise `/root`, das ein
+unprivilegierter Komponenten-Benutzer nicht lesen darf. Wer per `runuser` Rechte abgibt, muss
+deshalb Arbeitsverzeichnis und `HOME` explizit setzen (`runuser -u <user> -- env -C <dir>
+HOME=<dir> …`). Andernfalls scheitern Prüfungen mit irreführenden Meldungen, obwohl die Installation
+korrekt ist — am 17.09.2026 genau so bei den `ai-lab-*`-Komponenten passiert.
